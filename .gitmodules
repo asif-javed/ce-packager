@@ -1,0 +1,21 @@
+[submodule "packaging/package_skeleton/app/web/content/docs"]
+	path = packaging/package_skeleton/app/web/content/docs
+	url = git@github.com:kaltura/ce-docs.git
+[submodule "git-repositories/KalturaServer"]
+	path = git-repositories/KalturaServer
+	url = git@github.com:kaltura/KalturaServer.git
+[submodule "git-repositories/ce-binaries"]
+	path = git-repositories/ce-binaries
+	url = git@github.com:kaltura/ce-binaries.git
+[submodule "git-repositories/ce-branding"]
+	path = git-repositories/ce-branding
+	url = git@github.com:kaltura/ce-branding.git
+[submodule "git-repositories/ce-dwh"]
+	path = git-repositories/ce-dwh
+	url = git@github.com:kaltura/ce-dwh.git
+[submodule "git-repositories/ce-uiconfs"]
+	path = git-repositories/ce-uiconfs
+	url = git@github.com:kaltura/ce-uiconfs.git
+[submodule "git-repositories/ce-configurations"]
+	path = git-repositories/ce-configurations
+	url = git@github.com:kaltura/ce-configurations.git
