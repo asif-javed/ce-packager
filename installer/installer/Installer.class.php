@@ -94,6 +94,12 @@ class Installer {
 		}
 		
 		logMessage(L_USER, "Creating the uninstaller");
+		mkdir($app->get('BASE_DIR').'/uninstaller', 0777, true);
+		mkdir($app->get('BASE_DIR').'/log', 0777, true);
+		mkdir($app->get('BASE_DIR').'/log/batch', 0777, true);
+		mkdir($app->get('BASE_DIR').'/log/sphinx', 0777, true);
+		mkdir($app->get('BASE_DIR').'/log/sphinx/data', 0777, true);
+		mkdir($app->get('BASE_DIR').'/sphinx', 0777, true);
 		if (!OsUtils::fullCopy('installer/uninstall.php', $app->get('BASE_DIR')."/uninstaller/")) {
 			return "Failed to create the uninstaller";
 		}
@@ -177,6 +183,7 @@ class Installer {
 		}
 		
 		logMessage(L_USER, "Creating Dynamic Enums");
+		mkdir($app->get('BASE_DIR').'/app/configurations/hosts', 0777, true);
 		if (OsUtils::execute(sprintf("%s %s/deployment/base/scripts/installPlugins.php", $app->get('PHP_BIN'), $app->get('APP_DIR')))) {
 				logMessage(L_INFO, "Dynamic Enums created");
 		} else {

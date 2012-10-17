@@ -113,7 +113,11 @@ foreach($manifest['apps']['get'] as $current) {
 }
 $revisions += recurse_copy(realpath('../installer'), futurepath($base_dir));
 
-$revisions_git = github_export_group($manifest['html5'], $base_dir);
+// copy html5
+mkdir($base_dir."package/app/html5");
+mkdir($base_dir."package/app/html5/html5lib");
+$revisions_git = github_export_group($manifest['html5'], futurepath($base_dir));
+
 $revisions_str = implode(PHP_EOL, $revisions);
 file_put_contents($base_dir . 'package/revisions.ini', $revisions_str);
 #
