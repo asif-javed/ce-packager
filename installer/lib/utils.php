@@ -107,6 +107,22 @@
 		}
 	}
 
+	/**
+	 * Provides a function similar to `realpath()` that allows 
+	 * `recurse_copy` to copy files to a path that does not yet exist
+	 */
+	function futurepath($path)
+	{
+		$path = explode('/', $path);
+		foreach($path as $index => $directory) {
+			if ($directory == "..") {
+				unset($path[$index]);
+				unset($path[$index-1]);
+			}
+		}
+		return implode("/", $path);
+	}
+
 	// exports the $repository to the $destination using the $user and the $pass
 	function svn_export($repository, $user, $pass, $destination)
 	{
