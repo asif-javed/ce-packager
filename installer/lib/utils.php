@@ -4,13 +4,15 @@
 	 * Taken from: http://php.net/manual/en/function.copy.php
 	 * 
 	 * Recursively copies a directory from $src to $dst.
+	 * If $dst does not exist it is created.
 	 * Omits .svn directories.
+	 * Omits .git directories.
 	 **/
 	function recurse_copy($src, $dst) { 
 		$dir = opendir($src); 
-		@mkdir($dst); 
+		@mkdir($dst, 0775, true); 
 		while(false !== ( $file = readdir($dir)) ) { 
-			if (($file != '.') && ($file != '..') && ($file != '.svn')) { 
+			if (($file != '.') && ($file != '..') && ($file != '.svn') && ($file != '.git')){ 
 				if (is_dir($src . '/' . $file)) { 
 					recurse_copy($src . '/' . $file,$dst . '/' . $file); 
 				} 
