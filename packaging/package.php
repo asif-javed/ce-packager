@@ -74,40 +74,50 @@ file_put_contents($base_dir . 'package/version.ini', $version_ini_str);
 
 echo "Created version.ini\n";
 $revisions =  array();
-// get all svn files (including the installer)
-$revisions =  svn_export_group($manifest['server_core'], $manifest['global'], $base_dir);
-$server_onprem_all = $manifest['server_onprem'];
-$server_onprem_all['svn_path'] = $server_onprem_all['svn_path'] . 'all/';
-$revisions += svn_export_group($server_onprem_all, $manifest['global'], $base_dir);
-$server_onprem_specific = $manifest['server_onprem'];
-$server_onprem_specific['svn_path'] = $server_onprem_specific['svn_path'] . $version_ini['type'] . '/';
-$revisions += svn_export_group($server_onprem_specific, $manifest['global'], $base_dir);
+// get all files from git submodules (including the installer)
+$revisions = recurse_copy($manifest['server_core']['local_git_path'], $base_dir.$manifest['server_core']['local_path']);
+$revisions += recurse_copy($manifest['server_onprem']['local_git_path'], $base_dir.$manifest['server_onprem']['local_path']);
+$revisions += recurse_copy($manifest['server_ce']['local_git_path'], $base_dir.$manifest['server_ce']['local_path']);
 
 // get from kConf.php the latest versions of kmc
 $kconf = file_get_contents($base_dir."/". $manifest['server_core']['local_path'] . "configurations/base.ini");
 $kmcVersion = getVersionFromKconf($kconf,"kmc_version");
-$revisions += svn_export_group($manifest['flash'], $manifest['global'], $base_dir,"kmc/".$kmcVersion);
+$revisions += recurse_copy(realpath($manifest['flash']['local_git_path']."kmc/".$kmcVersion), futurepath($base_dir.$manifest['flash']['local_path']."kmc/".$kmcVersion));
+foreach($manifest['flash']['get'] as $current) {
+	$revision[$manifest['flash']['local_path'] . $current] = recurse_copy(realpath($manifest['flash']['local_git_path'].$current), futurepath($base_dir.$manifest['flash']['local_path'].$current));
+}
+// FIXME: I don't know what this one, vv,  does; looks like it copies too much stuff
+//$revisions += svn_export_group($manifest['flash'], $manifest['global'], $base_dir);
 
 // get kdp kClip versions that are working with kmc version.
 // get it from kmc config file 
 $kmcConf = parse_ini_file($base_dir."/".$manifest['flash']['local_path']."kmc/".$kmcVersion."/config.ini", true);
-
 //echo "kdp: " . $kmcConf['defaultKdp']['widgets.kdp1.version'];
-$revisions += svn_export_group($manifest['flash'], $manifest['global'], $base_dir,"kdp3/".$kmcConf['defaultKdp']['widgets.kdp1.version']);
-$revisions += svn_export_group($manifest['flash'], $manifest['global'], $base_dir,"kclip/".$kmcConf['kClip']['widgets.kClip1.version']);
 
-$revisions += svn_export_group($manifest['flash'], $manifest['global'], $base_dir);
-$revisions += svn_export_group($manifest['uiconf'], $manifest['global'], $base_dir);
-$revisions += svn_export_group($manifest['dwh'], $manifest['global'], $base_dir);
-$revisions += svn_export_group($manifest['dwh_upgrade'], $manifest['global'], $base_dir);
-$revisions += svn_export_group($manifest['apps'], $manifest['global'], $base_dir);
-$revisions += svn_export_group($manifest['installer'], $manifest['global'], $base_dir);
-$revisions += github_export_group($manifest['html5'], $base_dir);
+// copy flash binaries
+$revisions += recurse_copy(realpath($manifest['flash']['local_git_path'].'kdp3/'.$kmcConf['defaultKdp']['widgets.kdp1.version']), futurepath($base_dir.$manifest['flash']['local_path'].'kdp3/'.$kmcConf['defaultKdp']['widgets.kdp1.version']));
+$revisions += recurse_copy(realpath($manifest['flash']['local_git_path'].'kclip/'.$kmcConf['kClip']['widgets.kClip1.version']), futurepath($base_dir.$manifest['flash']['local_path'].'kclip/'.$kmcConf['kClip']['widgets.kClip1.version']));
+
+// copy uiconfs
+foreach($manifest['uiconf']['get'] as $current) {
+	$revision[$manifest['uiconf']['local_path'] . $current] = recurse_copy(realpath($manifest['uiconf']['local_git_path'].$current), futurepath($base_dir.$manifest['uiconf']['local_path'].$current));
+}
+
+// copy dwh
+$revisions += recurse_copy(realpath($manifest['dwh']['local_git_path']), futurepath($base_dir.$manifest['dwh']['local_path']));
+
+// copy apps
+foreach($manifest['apps']['get'] as $current) {
+	print('COPY '.$current."\n");
+	$revision[$manifest['apps']['local_path'] . $current] = recurse_copy(realpath($manifest['apps']['local_git_path'].$current), futurepath($base_dir.$manifest['apps']['local_path'].$current));
+}
+$revisions += recurse_copy(realpath('../installer'), futurepath($base_dir));
+
+$revisions_git = github_export_group($manifest['html5'], $base_dir);
 $revisions_str = implode(PHP_EOL, $revisions);
 file_put_contents($base_dir . 'package/revisions.ini', $revisions_str);
-
+#
 echo "Exported all svn code\n";
-
 
 // copy package root
 recurse_copy('./package_root/' . $version_ini['type'], $base_dir);
@@ -138,8 +148,3 @@ exec("find " . $base_dir . 'package/app' . ' -type f -name "*template*" -exec do
 exec("find " . $base_dir . 'package/bin/linux' . ' -type f -name "*.sh" -exec dos2unix {} \;');
 echo "Finished successfully\n";
 exit(0);
-
-
-
-
-
