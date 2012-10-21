@@ -1,0 +1,7 @@
+*/30 * * * * kaltura @APP_DIR@/scripts/watch.batchMgr.sh 2>&1 >> /opt/kaltura/log/cron.log
+30 4 * * * root /usr/sbin/logrotate -f -vv @BASE_DIR@/logrotate/kaltura_log_rotate >> @LOG_DIR@/kaltura_log_rotate.log 2>&1 >> /opt/kaltura/log/cron.log
+*/15 * * * * kaltura @APP_DIR@/alpha/crond/kaltura/clear_cache.sh 2>&1 >> /opt/kaltura/log/cron.log
+0 2 * * * kaltura @APP_DIR@/alpha/crond/kaltura/delete_old_content.sh 2>&1 >> /opt/kaltura/log/cron.log
+0 8 * * 0 kaltura @PHP_BIN@ @APP_DIR@/plugins/onprem/scripts/reportUsageTrackingIfOptIn.php 2>&1 >> /opt/kaltura/log/cron.log
+* * * * * kaltura cd @APP_DIR@/plugins/sphinx_search/scripts/ && @APP_DIR@/plugins/sphinx_search/scripts/watch.populate.sh @APP_DIR@/plugins/sphinx_search/scripts/configs/server-sphinx.php >> @LOG_DIR@/kaltura_log_populate.log  2>&1 >> /opt/kaltura/log/cron.log
+0 10 * * * kaltura @APP_DIR@/scripts/dwh/dwh_plays_views_sync.sh >> /opt/kaltura/log/cron.log

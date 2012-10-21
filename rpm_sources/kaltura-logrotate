@@ -1,0 +1,37 @@
+/opt/kaltura/log/kaltura_apache_errors.log {
+ rotate 5
+ daily
+ missingok
+ compress
+ dateext
+ notifempty
+ sharedscripts
+ postrotate
+	/sbin/service httpd reload > /dev/null 2>/dev/null || true
+ endscript
+}
+
+
+/opt/kaltura/log/kaltura_apache_access.log {
+ rotate 5
+ daily
+ missingok
+ compress
+ dateext
+ notifempty
+ sharedscripts
+ postrotate
+	/sbin/service httpd reload > /dev/null 2>/dev/null || true
+ endscript
+}
+
+/opt/kaltura/log/kaltura_api_v3.log {
+ rotate 5
+ daily
+ missingok
+ compress
+ dateext
+ notifempty
+}
+
+
