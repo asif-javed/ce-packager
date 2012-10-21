@@ -95,7 +95,7 @@ class AppConfig {
 		$this->app_config['WEB_DIR'] = $this->app_config['BASE_DIR'].'/web';	
 		$this->app_config['LOG_DIR'] = $this->app_config['BASE_DIR'].'/log';	
 		$this->app_config['BIN_DIR'] = $this->app_config['BASE_DIR'].'/bin';	
-		$this->app_config['TMP_DIR'] = $this->app_config['BASE_DIR'].'/tmp';
+		$this->app_config['TMP_DIR'] = $this->app_config['BASE_DIR'].'/tmp/';
 		$this->app_config['DWH_DIR'] = $this->app_config['BASE_DIR'].'/dwh';
 		$this->app_config['ETL_HOME_DIR'] = $this->app_config['BASE_DIR'].'/dwh'; // For backward compatibility
 		$this->app_config['SPHINX_BIN_DIR'] = $this->app_config['BIN_DIR'].'/sphinx';
@@ -126,7 +126,7 @@ class AppConfig {
 		//sphinx
 		$this->app_config['SPHINX_SERVER'] = '127.0.0.1';
 		$this->app_config['SPHINX_DB_NAME'] = 'kaltura_sphinx_log';
-		$this->app_config['SPHINX_DB_HOST'] = $this->app_config['DB1_HOST'];
+		$this->app_config['SPHINX_DB_HOST'] = $this->app_config['KALTURA_VIRTUAL_HOST_NAME'];
 		$this->app_config['SPHINX_DB_PORT'] = $this->app_config['DB1_PORT'];
 	    $this->app_config['SPHINX_DB_USER'] = $this->app_config['DB1_USER'];
 		$this->app_config['SPHINX_DB_PASS'] = $this->app_config['DB1_PASS'];
@@ -142,6 +142,7 @@ class AppConfig {
 		$this->app_config['ADMIN_CONSOLE_KUSER_SHA1'] = $salt;
 		$this->app_config['SYSTEM_USER_ADMIN_SHA1'] = $sha1;
 		$this->app_config['ADMIN_CONSOLE_KUSER_SALT'] = $sha1;
+		$this->app_config['UICONF_TAB_ACCESS'] = 'SYSTEM_ADMIN_BATCH_CONTROL';
 		//$this->app_config['XYMON_SERVER_MONITORING_CONTROL_SCRIPT'] = // Not set
 		
 		// stats DB
@@ -247,7 +248,7 @@ class AppConfig {
 		
 		$this->app_config['XYMON_URL'] = 'http://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'].'/xymon/';
 		$this->app_config['QUICK_START_GUIDE_URL'] = 'http://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'].'/content/docs/KMC_Quick_Start_Guide.pdf';
-		$this->app_config['UNSUBSCRIBE_EMAIL_URL'] = 'http://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'].'/index.php/extwidget/blockMail?e';
+		$this->app_config['UNSUBSCRIBE_EMAIL_URL'] = 'http://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'].'/index.php/extwidget/blockMail?e=';
 		
 	}
 	

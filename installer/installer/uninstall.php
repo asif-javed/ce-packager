@@ -165,5 +165,5 @@ deleteTextFromFile('/etc/crontab','kaltura');
 	
 if ($success) echo 'Uninstall finished successfully'.PHP_EOL;
 else echo 'Some of the uninstall steps failed, please complete the process manually'.PHP_EOL;
-echo 'Please maually remove Kaltura related Includes from your httpd.conf or httpd-vhosts.conf files'.PHP_EOL;
+echo 'Please maually remove Kaltura-related symbolic links in /etc/httpd/conf.d'.PHP_EOL;
 

@@ -135,6 +135,7 @@ exec("find " . $base_dir . 'package/bin/linux' . ' -type f -exec strip {} \;');
 // handle files committed from Windows.
 exec("find " . $base_dir . 'package/app' . ' -type f -name "*.php" -exec dos2unix {} \;');
 exec("find " . $base_dir . 'package/app' . ' -type f -name "*template*" -exec dos2unix {} \;');
+exec("find " . $base_dir . 'package/bin/linux' . ' -type f -name "*.sh" -exec dos2unix {} \;');
 echo "Finished successfully\n";
 exit(0);
 
