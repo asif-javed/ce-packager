@@ -49,7 +49,7 @@ ini_set('max_input_time ', 0);
 echo PHP_EOL.PHP_EOL;
 
 // start packaging
-echo "Started packaging";
+echo "Started packaging\n";
 
 $base_dir = $version_ini['outputdir'].'/';
 if (substr($base_dir,0,1) !== '/') {
@@ -84,6 +84,7 @@ $kconf = file_get_contents($base_dir."/". $manifest['server_core']['local_path']
 $kmcVersion = getVersionFromKconf($kconf,"kmc_version");
 $revisions += recurse_copy(realpath($manifest['flash']['local_git_path']."kmc/".$kmcVersion), futurepath($base_dir.$manifest['flash']['local_path']."kmc/".$kmcVersion));
 foreach($manifest['flash']['get'] as $current) {
+echo "Installing compiled $current\n";
 	$revision[$manifest['flash']['local_path'] . $current] = recurse_copy(realpath($manifest['flash']['local_git_path'].$current), futurepath($base_dir.$manifest['flash']['local_path'].$current));
 }
 // FIXME: I don't know what this one, vv,  does; looks like it copies too much stuff
