@@ -3,5 +3,5 @@
 */15 * * * * apache @APP_DIR@/alpha/crond/kaltura/clear_cache.sh >> /opt/kaltura/log/cron.log 2>&1
 0 2 * * * root @APP_DIR@/alpha/crond/kaltura/delete_old_content.sh >> /opt/kaltura/log/cron.log 2>&1
 0 8 * * 0 root @PHP_BIN@ @APP_DIR@/plugins/onprem/scripts/reportUsageTrackingIfOptIn.php >> /opt/kaltura/log/cron.log 2>&1
-* * * * * root cd @APP_DIR@/plugins/sphinx_search/scripts/ && @APP_DIR@/plugins/sphinx_search/scripts/watch.populate.sh @APP_DIR@/plugins/sphinx_search/scripts/configs/server-sphinx.php >> @LOG_DIR@/kaltura_log_populate.log >> /opt/kaltura/log/cron.log 2>&1
+* * * * * root @APP_DIR@/plugins/sphinx_search/scripts/watch.populate.sh @APP_DIR@/plugins/sphinx_search/scripts/configs/server-sphinx.php >> @LOG_DIR@/kaltura_log_populate.log >> /opt/kaltura/log/cron.log 2>&1
 0 10 * * * root @APP_DIR@/scripts/dwh/dwh_plays_views_sync.sh >> /opt/kaltura/log/cron.log

@@ -213,8 +213,14 @@ class AppConfig {
 		$this->app_config['BEGINNERS_TUTORIAL_URL'] = 'http://corp.kaltura.com/about/dosignup';
 		$this->app_config['QUICK_START_GUIDE_URL'] = 'http://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'].'/content/docs/KMC_Quick_Start_Guide.pdf';
 		$this->app_config['UNSUBSCRIBE_EMAIL_URL'] = 'http://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'].'/index.php/extwidget/blockMail?e';
-		
-		$this->app_config['DB1_CREATE_NEW_DB'] = ((strcasecmp('y',$this->app_config['DB1_CREATE_NEW_DB']) === 0) || (strcasecmp('yes',$this->app_config['DB1_CREATE_NEW_DB']) === 0));
+
+		if(!isset($this->app_config['DB1_CREATE_NEW_DB']))
+			$this->app_config['DB1_CREATE_NEW_DB'] = true;
+		else
+			$this->app_config['DB1_CREATE_NEW_DB'] = ((strcasecmp('y',$this->app_config['DB1_CREATE_NEW_DB']) === 0) || (strcasecmp('yes',$this->app_config['DB1_CREATE_NEW_DB']) === 0));
+	
+		if (!isset($this->app_config['RED5_INSTALL']))
+			$this->app_config['RED5_INSTALL'] = 'no';
 	}
 	
 	public function defineConfigurationTokens() {
@@ -251,7 +257,6 @@ class AppConfig {
 		$this->app_config['XYMON_URL'] = 'http://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'].'/xymon/';
 		$this->app_config['QUICK_START_GUIDE_URL'] = 'http://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'].'/content/docs/KMC_Quick_Start_Guide.pdf';
 		$this->app_config['UNSUBSCRIBE_EMAIL_URL'] = 'http://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'].'/index.php/extwidget/blockMail?e=';
-		
 	}
 	
 	public function definePostInstallationConfigurationTokens()
