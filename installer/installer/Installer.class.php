@@ -317,8 +317,8 @@ class Installer {
 	
 	public function installRed5 ($app)
 	{
+		OsUtils::execute("dos2unix " . $app->get('BIN_DIR') ."/red5/red5");
 		OsUtils::execute("ln -s ". $app->get('BIN_DIR') ."/red5/red5 /etc/init.d/red5");
-		OsUtils::execute("dos2unix /etc/init.d/red5");
 		OsUtils::execute("/etc/init.d/red5 start");
 		OsUtils::executeInBackground('chkconfig red5 on');
 		
