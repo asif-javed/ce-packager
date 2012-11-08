@@ -21,15 +21,9 @@ echo PHP_EOL;
 
 if (strcasecmp($type, K_TM_TYPE) !== 0) {
 	$hello_message = "Thank you for installing Kaltura Video Platform - Community Edition";
-	$report_message = "If you wish, please provide your email address so that we can offer you future assistance (leave empty to pass)";
-	$report_error_message = "Email must be in a valid email format";
-	$report_validator = InputValidator::createEmailValidator(true);		
 	$fail_action = "For assistance, please upload the installation log file to the Kaltura CE forum at kaltura.org";
 } else {
 	$hello_message = "Thank you for installing Kaltura Video Platform";
-	$report_message = "Please provide the name of your company or organization";
-	$report_error_message = "Name cannot be empty";
-	$report_validator = InputValidator::createNonEmptyValidator();	
 	$fail_action = "For assistance, please contant the support team at support@kaltura.com with the installation log attached";
 }
 
@@ -40,8 +34,13 @@ startLog("configure_log_".date("d.m.Y_H.i.s"));
 logMessage(L_INFO, "Configuration started");
 logMessage(L_USER, $hello_message);
 if ($result = ((strcasecmp($type, K_TM_TYPE) == 0) || 
-	($user->getTrueFalse('ASK_TO_REPORT', "In order to improve Kaltura Community Edition, we would like your permission to send system data to Kaltura.\nThis information will be used exclusively for improving our software and our service quality. I agree", 'y')))) {	
-	$email = $user->getInput('REPORT_MAIL', $report_message, $report_error_message, $report_validator, null);
+	($user->getTrueFalse('ASK_TO_REPORT', "In order to improve Kaltura Community Edition, we would like your permission to send system data to Kaltura.\nThis information will be used exclusively for improving our software and our service quality. I agree", 'y')))) {
+		
+	$report_message = "If you wish, please provide your email address so that we can offer you future assistance (leave empty to pass)";
+	$report_error_message = "Email must be in a valid email format";
+	$report_validator = InputValidator::createEmailValidator(true);		
+		
+	$email = $user->getInput('REPORT_ADMIN_EMAIL', $report_message, $report_error_message, $report_validator, null);
 	$app->set('REPORT_ADMIN_EMAIL', $email);
 	$app->set('TRACK_KDPWRAPPER','true');
 	$app->set('USAGE_TRACKING_OPTIN','true');	
@@ -69,7 +68,8 @@ $password = $user->getInput('ADMIN_CONSOLE_PASSWORD',
 						"The password you want to set for your primary administrator", 
 						"Password should not be empty and should not contain whitespaces, please enter again", 
 						InputValidator::createNoWhitespaceValidator(), 
-						null);
+						null, 
+						true);
 $app->set('ADMIN_CONSOLE_PASSWORD', $password);						
 						
 $install_config = parse_ini_file(FILE_CONFIG, true);
@@ -100,8 +100,28 @@ if (strcasecmp($type, K_TM_TYPE) !== 0) {
 
 
 echo PHP_EOL;
-logMessage(L_USER, sprintf("Configuration Completed Successfully.\nYour Kaltura Admin Console credentials:\nSystem Admin user: %s\nSystem Admin password: %s\n\nPlease keep this information for future use.\n", $app->get('ADMIN_CONSOLE_ADMIN_MAIL'), $app->get('ADMIN_CONSOLE_PASSWORD')));
-logMessage(L_USER, sprintf("To start using Kaltura, please complete the following steps:\n1. Add the following line to your /etc/hosts file:\n\t127.0.0.1 %s\n2. Add the following line to your Apache configurations file (Usually called httpd.conf or apache2.conf):\n\tInclude /opt/kaltura/app/configurations/apache/my_kaltura.conf\n3. Restart apache\n4. Browse to your Kaltura start page at: http://%s/start\n", $app->get("KALTURA_VIRTUAL_HOST_NAME"), $app->get("KALTURA_VIRTUAL_HOST_NAME")));
+logMessage(L_USER, sprintf(
+	"Configuration Completed Successfully.\nYour Kaltura Admin Console credentials:\n" . 
+	"\tSystem Admin user: %s\n" . 
+	"\tSystem Admin password: %s\n\n" . 
+	"Please keep this information for future use.\n\n",
+ 
+	$app->get('ADMIN_CONSOLE_ADMIN_MAIL'), 
+	$app->get('ADMIN_CONSOLE_PASSWORD')
+));
+	
+logMessage(L_USER, sprintf(
+	"To start using Kaltura, please complete the following steps:\n" . 
+	"1. Add the following line to your /etc/hosts file:\n" . 
+	"\t127.0.0.1 %s\n" . 
+	"2. Locate your Apache conf.d directory (usually found under /etc/httpd/conf.d) and create there a symlink to %s/configurations/apache/my_kaltura.conf\n" . 
+	"3. Restart apache\n" . 
+	"4. Browse to your Kaltura start page at: http://%s/start\n", 
+
+	$app->get("KALTURA_VIRTUAL_HOST_NAME"), 
+	realpath($app->get("APP_DIR")), 
+	$app->get("KALTURA_VIRTUAL_HOST_NAME")
+));
 
 
 die(0);
