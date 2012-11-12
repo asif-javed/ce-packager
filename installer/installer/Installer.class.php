@@ -171,7 +171,7 @@ class Installer {
 		else 
 		{
 			logMessage(L_USER, "Creating data warehouse");
-			if (!OsUtils::execute(sprintf("%s/setup/dwh_setup.sh -h %s -P %s -u %s -p %s -d %s ", $app->get('DWH_DIR'), $app->get('DB1_HOST'), $app->get('DB1_PORT'), $app->get('DB1_USER'), $app->get('DB1_PASS'), $app->get('DWH_DIR')))) {		
+			if (!OsUtils::execute(sprintf("%s/setup/dwh_setup.sh -h %s -P %s -u %s -p %s -d %s ", $app->get('DWH_DIR'), $app->get('DB1_HOST'), $app->get('DB1_PORT'), $app->get('DWH_USER'), $app->get('DWH_PASS'), $app->get('DWH_DIR')))) {		
 				return "Failed running data warehouse initialization script";
 			}
 		}
@@ -340,7 +340,7 @@ class Installer {
 		logMessage(L_USER, "If you are insterested in recording entries from webcam, please adjust the RTMP server URL in each of the following uiConfs:\r\n". implode("\r\n", $uiconfIds));
 	    logMessage(L_USER, "By replacing 'rtmp://yoursite.com/oflaDemo' with 'rtmp://". $app->get('ENVIRONMENT_NAME') . "/oflaDemo");
 		
-		OsUtils::execute("mv ". $app->get('BIN_DIR') . "/red5/webapps/oflaDemo/streams /usr/share/red5/webapps/oflaDemo/streams_x");
+		OsUtils::execute("mv ". $app->get('BIN_DIR') . "/red5/webapps/oflaDemo/streams " . $app->get('BIN_DIR'). "/red5/webapps/oflaDemo/streams_x");
 		OsUtils::execute ("ln -s " .$app->get('WEB_DIR'). "/content/webcam " . $app->get('BIN_DIR') ."/red5/webapps/oflaDemo/streams");
 		OsUtils::execute ("ln -s " .$app->get('WEB_DIR'). "/content " . $app->get('BIN_DIR') . "/red5/webapps/oflaDemo/streams");
 	}
