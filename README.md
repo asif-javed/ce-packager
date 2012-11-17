@@ -80,6 +80,13 @@ by Kaltura.
 
 # Run the Installation Script
 
+***Please note that you must enter a fully qualified domain name when
+asked for your system hostname during installation.  Enter an IP address
+when you're asked for the hostname will lead to a broken install***
+
+***Please note that you must enter Y when asked if you would like to
+create a new database***
+
 	cd ~/kaltura-installer
 	sudo php install.php
 
@@ -94,7 +101,7 @@ modifying `/etc/hosts` and Apache virtual host configurations.
 * Restart Sphinx: `sudo pkill searchd && sudo /opt/kaltura/bin/sphinx/searchd -c /opt/kaltura/app/configurations/sphinx/kaltura.conf`
 * Check Batch Jobs Status: 
   * `sudo /opt/kaltura/app/scripts/serviceBatchMgr.sh status`
-  * `ps aax | grep batch`
+  * `ps aux | grep batch`
 
 ## Log files in Kaltura
 
