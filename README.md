@@ -81,11 +81,11 @@ by Kaltura.
 # Run the Installation Script
 
 ***Please note that you must enter a fully qualified domain name when
-asked for your system hostname during installation.  Enter an IP address
-when you're asked for the hostname will lead to a broken install***
+asked for your system hostname during installation.  Entering an IP address
+when you're asked for the hostname will lead to a broken install.***
 
 ***Please note that you must enter Y when asked if you would like to
-create a new database***
+create a new database.***
 
 	cd ~/kaltura-installer
 	sudo php install.php
