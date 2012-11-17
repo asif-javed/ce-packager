@@ -189,7 +189,7 @@ class UserInput
 						"Would you like to create a new kaltura database or use an exisiting one? (Y/n)", 
 						"Input is not valid", 
 						InputValidator::createYesNoValidator(), 
-						null);
+						"yes");
 		$this->getInput('XYMON_URL', 
 						"The URL to your xymon/hobbit monitoring location. Xymon is an optional installation. Leave empty to set manually later\nExamples:\nhttp://www.xymondomain.com/xymon/\nhttp://www.xymondomain.com/hobbit/", 
 						null, 
