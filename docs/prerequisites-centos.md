@@ -6,6 +6,12 @@
 					php-pecl-apc php-pecl-memcache php-xml
 	sudo yum --enablerepo=centosplus install mod_php
 
+*If you are installing on Amazon Linux you will also need to:*
+
+    sudo yum install mysql51-libs
+	// if you created your instance with an increased boot EBS
+	sudo resize2fs /dev/xvda1
+
 # Download and install the latest JRE from Oracle
 
 http://www.oracle.com/technetwork/java/javase/downloads/index.html
