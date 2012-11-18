@@ -8,7 +8,7 @@
 
 *If you are installing on Amazon Linux you will also need to:*
 
-    sudo yum install mysql51-libs
+    sudo yum install mysql51-libs binutils
 	// if you created your instance with an increased boot EBS
 	sudo resize2fs /dev/xvda1
 
