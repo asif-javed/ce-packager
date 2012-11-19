@@ -3,7 +3,7 @@
     sudo yum update
 	sudo yum install git wget dos2unix php-cli php-mysql php-gd \
 					mysql-server memcached httpd mailx ImageMagick \
-					php-pecl-apc php-pecl-memcache php-xml
+					php-pecl-apc php-pecl-memcache php-xml cronie
 	sudo yum --enablerepo=centosplus install mod_php
 
 *If you are installing on Amazon Linux you will also need to:*
