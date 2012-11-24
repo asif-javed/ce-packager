@@ -7,6 +7,10 @@ required for installation and then packages those into a php based installer fro
 
 The installer package, once created, is used to install and configure a Kaltura server.
 
+To see the entire process of obtaining prerequisites on CentOS/Amazon
+Linux, packaging an installer, and installing Kaltura CE, the
+[screencasts can be viewed here](http://kaltura.github.com/ce-packager/docs/screencasts.html).
+
 # System Requirements
 
 The following prerequisites are required for installing and for running the Kaltura CE on a Linux server.
