@@ -115,7 +115,7 @@ release version (currently `falcon`) when doing an initial clone.
 To rebase latest `falcon` onto new commits to `kelev-CE-6.0.1-mirror`:
 
     git checkout falcon
-    git rebase kelev-CE-6.0.1-mirror
+    git rebase origin/kelev-CE-6.0.1-mirror
 
 To switch to a new release version or development master, rebase the 
 commits beginning from the addition of the README.md on top of the
