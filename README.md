@@ -68,8 +68,8 @@ by Kaltura.
 
 	sudo mkdir /usr/local/pentaho
 	cd /usr/local/pentaho
-	sudo wget http://sourceforge.net/projects/pentaho/files/Data%20Integration/4.3.0-stable/pdi-ce-4.3.0-stable.tar.gz
-	sudo tar xzf pdi-ce-4.3.0-stable.tar.gz
+	sudo wget http://sourceforge.net/projects/pentaho/files/Data%20Integration/4.2.1-stable/pdi-ce-4.2.1-stable.tar.gz
+	sudo tar xzf pdi-ce-4.2.1-stable.tar.gz
 	sudo mv data-integration pdi
 
 # Build an Installation Package
