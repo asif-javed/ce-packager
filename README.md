@@ -99,6 +99,25 @@ modifying `/etc/hosts` and Apache virtual host configurations.
 
 # Useful Knowledge Points
 
+## GitHub Development and Release Branches
+
+This collection of GitHub repositories tracks both development
+(master) and named versions (falcon/gemini) of the Kaltura CE
+Server.  
+
+The ce-packager repository automatically checks out the latest stable
+release version (currently falcon) when doing an initial clone.
+
+To switch to a new release version or development master, rebase the 
+commits beginning from the addition of the README.md on top of the
+branch you wish to use and update the KalturaServer submodule to use a
+similar branch.
+
+*During development, all commits to this repo _must_ be atomic so that
+they may be rebased onto misc branches.*  Fixes to the packager or
+server should be rebased to the base of the branch to insure that they
+can cleanly be applied to the R&D svn.
+
 ## Commonly Used Server Administration Commands
 
 * Restart Sphinx: `sudo pkill searchd && sudo /opt/kaltura/bin/sphinx/searchd -c /opt/kaltura/app/configurations/sphinx/kaltura.conf`
