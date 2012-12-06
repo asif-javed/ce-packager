@@ -38,7 +38,6 @@ by Kaltura.
   * Both php and php-cli must be present.
   * Verify that the following settings within the php.ini file are set on each server (for both php and php-cli):
     * For PHP 5.3: Verify that request_order parameter includes C, G and P (recommended: "CGP")
-    * For PHP 5.2: Verify that variables_order parameter in php.ini includes C, G and P.
     * Verify that date.timezone parameter is set to the right timezone.
 * MySQL 5.1.37 or above.
   * Verify that mysql server character set is UTF8.
