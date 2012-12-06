@@ -106,7 +106,7 @@ modifying `/etc/hosts` and Apache virtual host configurations.
 * `kelev-mirror` - direct mirror of Kaltura R&D SVN trunk
 * `master` - unmaintained rebase of git packager commits onto `kelev-mirror`
 * `kelev-CE-6.0.1-mirror` - direct mirror of Kaltura R&D SVN `falcon` release tag
-* `falcon` - **current maintained release branch** rebase of git packager commits onto `kelev-CE-6.0.1-mirror`
+* `falcon` - **current maintained release branch** (rebase of git packager commits onto `kelev-CE-6.0.1-mirror`)
 * `gemini` - unmaintained rebase of git packager commits onto `kelev-mirror`
 
 The ce-packager repository automatically checks out the latest stable
