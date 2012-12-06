@@ -101,24 +101,28 @@ modifying `/etc/hosts` and Apache virtual host configurations.
 
 # Useful Knowledge Points
 
-## GitHub Development and Release Branches
+## GitHub Development Branches
 
-This collection of GitHub repositories tracks both development
-(master) and named versions (falcon/gemini) of the Kaltura CE
-Server.  
+* `kelev-mirror` - direct mirror of Kaltura R&D SVN trunk
+* `master` - unmaintained rebase of git packager commits onto `kelev-mirror`
+* `kelev-CE-6.0.1-mirror` - direct mirror of Kaltura R&D SVN `falcon` release tag
+* `falcon` - **current maintained release branch** rebase of git packager commits onto `kelev-CE-6.0.1-mirror`
+* `gemini` - unmaintained rebase of git packager commits onto `kelev-mirror`
 
 The ce-packager repository automatically checks out the latest stable
-release version (currently falcon) when doing an initial clone.
+release version (currently `falcon`) when doing an initial clone.
+
+To rebase latest `falcon` onto new commits to `kelev-CE-6.0.1-mirror`:
+
+    git checkout falcon
+    git rebase kelev-CE-6.0.1-mirror
 
 To switch to a new release version or development master, rebase the 
 commits beginning from the addition of the README.md on top of the
-branch you wish to use and update the KalturaServer submodule to use a
-similar branch.
+branch you wish to use and update the submodules to use a similar branch.
 
-***During development, all commits to this repo _must_ be atomic so that
-they may be rebased onto any branch.***  Fixes to the packager or
-server should be rebased to the base of the branch to insure that they
-can cleanly be applied to the R&D svn.
+**During development, all commits to this repo _must_ be atomic so that
+they may be rebased onto SVN mirror branches.**
 
 ## Commonly Used Server Administration Commands
 
