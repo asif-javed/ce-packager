@@ -37,7 +37,7 @@ by Kaltura.
 * PHP 5.3 or above.
   * Both php and php-cli must be present.
   * Verify that the following settings within the php.ini file are set on each server (for both php and php-cli):
-    * For PHP 5.3: Verify that request_order parameter includes C, G and P (recommended: "CGP")
+    * Verify that request_order parameter includes C, G and P (recommended: "CGP")
     * Verify that date.timezone parameter is set to the right timezone.
 * MySQL 5.1.37 or above.
   * Verify that mysql server character set is UTF8.
@@ -62,6 +62,8 @@ by Kaltura.
 
 * [CentOS](https://github.com/kaltura/ce-packager/blob/falcon/docs/prerequisites-centos.md) (recommended)
 * [Ubuntu](https://github.com/kaltura/ce-packager/blob/falcon/docs/prerequisites-ubuntu.md)
+
+***Please do not try to run Kaltura with less than 4GB of RAM***
 
 ## Install Pentaho
 
@@ -113,8 +115,8 @@ commits beginning from the addition of the README.md on top of the
 branch you wish to use and update the KalturaServer submodule to use a
 similar branch.
 
-*During development, all commits to this repo _must_ be atomic so that
-they may be rebased onto misc branches.*  Fixes to the packager or
+***During development, all commits to this repo _must_ be atomic so that
+they may be rebased onto any branch.***  Fixes to the packager or
 server should be rebased to the base of the branch to insure that they
 can cleanly be applied to the R&D svn.
 
