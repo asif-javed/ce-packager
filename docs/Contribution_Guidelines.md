@@ -32,9 +32,9 @@ following the last SVN commit, you may request that the commit be
 committed back to the R&D SVN via `git svn dcommit` from the
 syncronization server.  **Note that this is a manual task.**
 
-![ce-packager rebase workflow](https://raw.github.com/kaltura/ce-packager/falcon/docs/images/CE%20GitHub%20Structure.png "Rebase Workflow")
-
 **The rebase workflow requires that all modifications should be done on
 working branches because once committed to a release branch like
 `master` or `falcon` every developer must `git pull --force` to update
 their local copies of the GitHub repository.**
+
+![ce-packager rebase workflow](https://raw.github.com/kaltura/ce-packager/falcon/docs/images/CE%20GitHub%20Structure.png "Rebase Workflow")
