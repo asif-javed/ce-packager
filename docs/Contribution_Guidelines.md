@@ -5,8 +5,6 @@ R&D's canonical SVN repository.
 
 # [CE Packager](https://github.com/kaltura/ce-packager) Rebase Workflow
 
-![ce-packager rebase workflow](https://raw.github.com/kaltura/ce-packager/falcon/docs/images/CE%20GitHub%20Structure.png "Rebase Workflow")
-
 The CE Packager repository is manually synced from the R&D SVN (blue
 dots are SVN revisions) into `*-mirror` branches in the GitHub repository.  Additionally,
 `ce-packager` includes many modifications to to the packager to remove
@@ -32,9 +30,11 @@ rebase -i <oldest commit id>` and reorder the lines of the file to move
 your commit to the head of the queue.  Once the red commit is directly
 following the last SVN commit, you may request that the commit be
 committed back to the R&D SVN via `git svn dcommit` from the
-syncronization server.  ** Note that this is a manual task. **
+syncronization server.  **Note that this is a manual task.**
 
-** The rebase workflow requires that all modifications should be done on
+![ce-packager rebase workflow](https://raw.github.com/kaltura/ce-packager/falcon/docs/images/CE%20GitHub%20Structure.png "Rebase Workflow")
+
+**The rebase workflow requires that all modifications should be done on
 working branches because once committed to a release branch like
 `master` or `falcon` every developer must `git pull --force` to update
-their local copies of the GitHub repository. **
+their local copies of the GitHub repository.**
