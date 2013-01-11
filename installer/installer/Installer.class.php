@@ -274,6 +274,10 @@ class Installer {
 		print("Executing sphinx dameon \n");
 		OsUtils::executeInBackground('nohup '.$app->get('APP_DIR').'/plugins/sphinx_search/scripts/watch.daemon.sh');
 		OsUtils::executeInBackground('chkconfig sphinx_watch.sh on');
+		
+		//make sure crond is running.
+		OsUtils::executeInBackground('chkconfig crond on');
+		
 		$this->changeDirsAndFilesPermissions($app);
 		
 		OsUtils::execute('cp /package/version.ini ' . $app->get('APP_DIR') . '/configurations/');

@@ -155,7 +155,7 @@ class AppConfig {
 		$this->app_config['DWH_PASS'] = 'etl';
 		$this->app_config['DWH_SEND_REPORT_MAIL'] = $this->app_config['ADMIN_CONSOLE_ADMIN_MAIL'];
 		$this->app_config['EVENTS_LOGS_DIR'] = $this->app_config['LOG_DIR'];
-		$this->app_config['EVENTS_WILDCARD'] = 'kaltura_apache_access.log-.*';
+		$this->app_config['EVENTS_WILDCARD'] = '*kaltura.*_apache_access.log-.*';
 		$this->app_config['EVENTS_FETCH_METHOD'] = 'local';
 		
 				
@@ -333,7 +333,6 @@ class AppConfig {
 	 * @return $sha1 & $salt by reference
 	 */
 	public static function generateSha1Salt($password, &$salt, &$sha1) {
-		logMessage(L_INFO, "Generating sh1 and salf from password");
 		$salt = md5(rand(100000, 999999).$password); 
 		$sha1 = sha1($salt.$password);  
 	}

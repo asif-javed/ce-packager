@@ -18,8 +18,6 @@
  compress
  dateext
  notifempty
- sharedscripts
- postrotate
 lastaction
 mv @LOG_DIR@/kaltura_apache_access.log-`/bin/date +%Y%m%d`.gz /opt/kaltura/web/logs/`hostname`-kaltura_apache_access.log-`/bin/date +%Y%m%d`.gz
 @APACHE_RESTART_COMMAND@
