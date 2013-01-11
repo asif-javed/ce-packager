@@ -76,11 +76,12 @@ if (is_file(FILE_INSTALL_SEQ_ID)) {
 }
 
 // read package version
-$version = parse_ini_file('package/version.ini');
-logMessage(L_INFO, "Installing Kaltura ".$version['type'].' '.$version['number']);
+$packageDir = realpath('../package');
+$version = parse_ini_file("$packageDir/version.ini");
 AppConfig::set(AppConfigAttribute::KALTURA_VERSION, 'Kaltura '.$version['type'].' '.$version['number']);
 AppConfig::set(AppConfigAttribute::KALTURA_PREINSTALLED, $version['preinstalled']);
 AppConfig::set(AppConfigAttribute::KALTURA_VERSION_TYPE, $version['type']);
+logMessage(L_INFO, "Installing Kaltura ".AppConfig::get(AppConfigAttribute::KALTURA_VERSION));
 if (strcasecmp(AppConfig::get(AppConfigAttribute::KALTURA_VERSION_TYPE), K_TM_TYPE) !== 0) {
 	$hello_message = "Thank you for installing Kaltura Video Platform - Community Edition";
 	$fail_action = "For assistance, please upload the installation log file to the Kaltura CE forum at kaltura.org";
@@ -154,7 +155,7 @@ if ($user->isInputLoaded()) {
 }
 
 // get from kConf.php the latest versions of kmc , clipapp and HTML5
-$kconf = file_get_contents("package/app/app/configurations/base.ini");
+$kconf = file_get_contents("$packageDir/app/configurations/base.ini");
 $latestVersions = array();
 $latestVersions["KMC_VERSION"] = getVersionFromKconf($kconf,"kmc_version");
 $latestVersions["CLIPAPP_VERSION"] = getVersionFromKconf($kconf,"clipapp_version");
@@ -164,8 +165,8 @@ $latestVersions["HTML5_VERSION"] = getVersionFromKconf($kconf,"html5_version");
 AppConfig::initFromUserInput(array_merge((array)$user->getAll(), (array)$latestVersions));
 $db_params['db_host'] = AppConfig::get(AppConfigAttribute::DB1_HOST);
 $db_params['db_port'] = AppConfig::get(AppConfigAttribute::DB1_PORT);
-$db_params['db_user'] = AppConfig::get(AppConfigAttribute::DB1_USER);
-$db_params['db_pass'] = AppConfig::get(AppConfigAttribute::DB1_PASS);
+$db_params['db_user'] = AppConfig::get(AppConfigAttribute::DB_ROOT_USER);
+$db_params['db_pass'] = AppConfig::get(AppConfigAttribute::DB_ROOT_PASS);
 
 // verify prerequisites
 echo PHP_EOL;
@@ -194,13 +195,6 @@ if (isset($leftovers)) {
 	}
 }
 
-// last chance to stop the installation
-echo PHP_EOL;
-if ((!$silentRun) && (!$user->getTrueFalse('', "Installation is now ready to begin. Start installation now?", 'y'))) {
-	echo "Bye".PHP_EOL;
-	die(1);	
-}
-
 // run the installation
 $install_output = $installer->install($db_params);
 if ($install_output !== null) {
@@ -212,14 +206,8 @@ if (AppConfig::get(AppConfigAttribute::RED5_INSTALL))
 	$installer->installRed5();	
 }
 
-// add usage tracking crontab for onprem TM
-if (strcasecmp(AppConfig::get(AppConfigAttribute::KALTURA_VERSION_TYPE), K_TM_TYPE) === 0) {
-	$tracking_cron = sprintf("\n0 8 5 * * kaltura %s %s/admin_console/scripts/send-usage-report.php\n", AppConfig::get(AppConfigAttribute::PHP_BIN), AppConfig::get(AppConfigAttribute::APP_DIR));
-	OsUtils::appendFile(AppConfig::get(AppConfigAttribute::BASE_DIR).'/crontab/kaltura_crontab', $tracking_cron);
-}
-
 // send settings mail if possible
-$msg = sprintf("Thank you for installing the Kaltura Video Platform\n\nTo get started, please browse to your kaltura start page at:\nhttp://%s/start\n\nYour kaltura administration console can be accessed at:\nhttp://%s/admin_console\n\nYour Admin Console credentials are:\nSystem admin user: %s\nSystem admin password: %s\n\nPlease keep this information for future use.\n\nThank you for choosing Kaltura!", AppConfig::get(AppConfigAttribute::KALTURA_VIRTUAL_HOST_NAME), AppConfig::get(AppConfigAttribute::KALTURA_VIRTUAL_HOST_NAME), AppConfig::get(AppConfigAttribute::ADMIN_CONSOLE_ADMIN_MAIL), AppConfig::get(AppConfigAttribute::ADMIN_CONSOLE_PASSWORD)).PHP_EOL;
+$msg = sprintf("Thank you for installing the Kaltura Video Platform\n\nTo get started, please browse to your kaltura start page at:\nhttp://%s/start\n\nYour ".AppConfig::get(AppConfigAttribute::KALTURA_VERSION_TYPE)." administration console can be accessed at:\nhttp://%s/admin_console\n\nYour Admin Console credentials are:\nSystem admin user: %s\nSystem admin password: %s\n\nPlease keep this information for future use.\n\nThank you for choosing Kaltura!", AppConfig::get(AppConfigAttribute::KALTURA_VIRTUAL_HOST_NAME), AppConfig::get(AppConfigAttribute::KALTURA_VIRTUAL_HOST_NAME), AppConfig::get(AppConfigAttribute::ADMIN_CONSOLE_ADMIN_MAIL), AppConfig::get(AppConfigAttribute::ADMIN_CONSOLE_PASSWORD)).PHP_EOL;
 $mailer = new PHPMailer();
 $mailer->CharSet = 'utf-8';
 $mailer->IsHTML(false);

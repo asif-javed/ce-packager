@@ -1,5 +1,0 @@
-*/30 * * * * kaltura @APP_DIR@/scripts/watch.batchMgr.sh 2>&1 >> @LOG_DIR@/cron.log
-*/15 * * * * kaltura @APP_DIR@/alpha/crond/kaltura/clear_cache.sh 2>&1 >> @LOG_DIR@/cron.log
-0 8 * * 0 kaltura @PHP_BIN@ @APP_DIR@/plugins/onprem/scripts/reportUsageTrackingIfOptIn.php 2>&1 >> @LOG_DIR@/cron.log
-* * * * * kaltura @APP_DIR@/plugins/sphinx_search/scripts/watch.populate.sh @APP_DIR@/plugins/sphinx_search/scripts/configs/server-sphinx.php >> @LOG_DIR@/kaltura_log_populate.log  2>&1
-0 10 * * * kaltura @APP_DIR@/scripts/dwh/dwh_plays_views_sync.sh >> @LOG_DIR@/cron.log

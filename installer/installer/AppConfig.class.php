@@ -22,6 +22,9 @@ class AppConfigAttribute
 	const CURL_BIN_DIR							= 'CURL_BIN_DIR';
 	const SPHINX_BIN_DIR						= 'SPHINX_BIN_DIR';
 	
+	const DB_ROOT_USER							= 'DB_ROOT_USER';
+	const DB_ROOT_PASS							= 'DB_ROOT_PASS';
+	
 	const DB1_HOST								= 'DB1_HOST';
 	const DB1_PORT								= 'DB1_PORT';
 	const DB1_USER								= 'DB1_USER';
@@ -121,11 +124,11 @@ class AppConfigAttribute
 	const UNSUBSCRIBE_EMAIL_URL					= 'UNSUBSCRIBE_EMAIL_URL';
 	const GOOGLE_ANALYTICS_ACCOUNT				= 'GOOGLE_ANALYTICS_ACCOUNT';
 	const INSTALLATION_TYPE						= 'INSTALLATION_TYPE';
+	const INSTALLATION_UID						= 'INSTALLATION_UID';
+	const INSTALLATION_SEQUENCE_UID				= 'INSTALLATION_SEQUENCE_UID';
 	
 	const KALTURA_VERSION_TYPE					= 'KALTURA_VERSION_TYPE';
 	const KALTURA_VERSION						= 'KALTURA_VERSION';
-	const INSTALL_SEQUENCE_UID					= 'INSTALL_SEQUENCE_UID';
-	const INSTALL_UID							= 'INSTALL_UID';
 	
 	const UICONF_TAB_ACCESS						= 'UICONF_TAB_ACCESS';
 	
@@ -257,6 +260,13 @@ class AppConfig
 		if (self::$app_config[AppConfigAttribute::DB1_HOST] == 'localhost') {
 			self::$app_config[AppConfigAttribute::DB1_HOST] = '127.0.0.1';
 		}
+		self::$app_config[AppConfigAttribute::DB1_USER] = 'kaltura';
+		self::$app_config[AppConfigAttribute::DB1_PASS] = 'kaltura';
+	    self::$app_config[AppConfigAttribute::SPHINX_DB_USER] = 'kaltura_sphinx';
+		self::$app_config[AppConfigAttribute::SPHINX_DB_PASS] = 'kaltura_sphinx';
+		self::$app_config[AppConfigAttribute::DWH_USER] = 'kaltura_etl';
+		self::$app_config[AppConfigAttribute::DWH_PASS] = 'kaltura_etl';
+		
 		self::collectDatabaseCopier('DB1', 'DB2');
 		self::collectDatabaseCopier('DB1', 'DB3');
 
@@ -265,8 +275,6 @@ class AppConfig
 		self::$app_config[AppConfigAttribute::SPHINX_DB_NAME] = 'kaltura_sphinx_log';
 		self::$app_config[AppConfigAttribute::SPHINX_DB_HOST] = self::$app_config[AppConfigAttribute::KALTURA_VIRTUAL_HOST_NAME];
 		self::$app_config[AppConfigAttribute::SPHINX_DB_PORT] = self::$app_config[AppConfigAttribute::DB1_PORT];
-	    self::$app_config[AppConfigAttribute::SPHINX_DB_USER] = self::$app_config[AppConfigAttribute::DB1_USER];
-		self::$app_config[AppConfigAttribute::SPHINX_DB_PASS] = self::$app_config[AppConfigAttribute::DB1_PASS];
 		
 		// admin console defaults
 		self::$app_config[AppConfigAttribute::SYSTEM_USER_ADMIN_EMAIL] = self::$app_config[AppConfigAttribute::ADMIN_CONSOLE_ADMIN_MAIL];
@@ -285,11 +293,9 @@ class AppConfig
 		self::$app_config[AppConfigAttribute::DWH_HOST] = self::$app_config[AppConfigAttribute::DB1_HOST];
 		self::$app_config[AppConfigAttribute::DWH_PORT] = self::$app_config[AppConfigAttribute::DB1_PORT];
 		self::$app_config[AppConfigAttribute::DWH_DATABASE_NAME] = 'kalturadw';
-		self::$app_config[AppConfigAttribute::DWH_USER] = 'etl';
-		self::$app_config[AppConfigAttribute::DWH_PASS] = 'etl';
 		self::$app_config[AppConfigAttribute::DWH_SEND_REPORT_MAIL] = self::$app_config[AppConfigAttribute::ADMIN_CONSOLE_ADMIN_MAIL];
 		self::$app_config[AppConfigAttribute::EVENTS_LOGS_DIR] = self::$app_config[AppConfigAttribute::LOG_DIR];
-		self::$app_config[AppConfigAttribute::EVENTS_WILDCARD] = 'kaltura_apache_access.log-.*';
+		self::$app_config[AppConfigAttribute::EVENTS_WILDCARD] = '*kaltura.*_apache_access.log-.*';
 		self::$app_config[AppConfigAttribute::EVENTS_FETCH_METHOD] = 'local';
 		
 				
@@ -432,7 +438,7 @@ class AppConfig
 	 * @param string $sha1 sha1 will be generated
 	 * @return $sha1 & $salt by reference
 	 */
-	public static static function generateSha1Salt($password, &$salt, &$sha1) {
+	public static function generateSha1Salt($password, &$salt, &$sha1) {
 		logMessage(L_INFO, "Generating sh1 and salf from password");
 		$salt = md5(rand(100000, 999999).$password); 
 		$sha1 = sha1($salt.$password);  
@@ -477,7 +483,7 @@ class AppConfig
 	}
 	
 	// creates a random key used to generate a secret
-	private static static function makeRandomString($minlength, $maxlength, $useupper, $usespecial, $usenumbers) {
+	private static function makeRandomString($minlength, $maxlength, $useupper, $usespecial, $usenumbers) {
 		$charset = "abcdefghijklmnopqrstuvwxyz";
 		if ($useupper) $charset .= "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 		if ($usenumbers) $charset .= "0123456789";

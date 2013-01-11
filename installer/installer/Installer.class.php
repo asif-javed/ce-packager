@@ -1,7 +1,6 @@
 <?php
 
 define("FILE_INSTALL_CONFIG", "installer/installation.ini"); // this file contains the definitions of the installation itself
-define("APP_SQL_DIR", "/app/deployment/final/sql/"); // this is the relative directory where the final sql files are
 define("SYMLINK_SEPARATOR", "^"); // this is the separator between the two parts of the symbolic link definition
 
 /*
@@ -25,13 +24,13 @@ class Installer {
 		
 		// symbloic links leftovers
 		foreach ($this->install_config['symlinks'] as $slink) {
-			$link_items = explode(SYMLINK_SEPARATOR, AppConfig::replaceTokensInString($slink));	
-			if (is_file($link_items[1]) && (strpos($link_items[1], AppConfig::get(AppConfigAttribute::BASE_DIR)) === false)) {
+			list($target, $link) = explode(SYMLINK_SEPARATOR, AppConfig::replaceTokensInString($slink));	
+			if (is_file($link) && (strpos($link, AppConfig::get(AppConfigAttribute::BASE_DIR)) === false)) {
 				if ($report_only) {
-					$leftovers .= "   ".$link_items[1]." symbolic link exists".PHP_EOL;
+					$leftovers .= "   ".$link." symbolic link exists".PHP_EOL;
 				} else {
-					logMessage(L_USER, "Removing symbolic link $link_items[1]");
-					OsUtils::recursiveDelete($link_items[1]);
+					logMessage(L_USER, "Removing symbolic link $link");
+					OsUtils::recursiveDelete($link);
 				}
 			}
 		}
@@ -58,13 +57,13 @@ class Installer {
 			} else {
 				logMessage(L_USER, "killing sphinx daemon if running");
 				$currentWorkingDir = getcwd();
-				chdir(AppConfig::get(AppConfigAttribute::APP_DIR).'/app/plugins/sphinx_search/scripts/');
-				@exec(AppConfig::get(AppConfigAttribute::BASE_DIR).'/app/plugins/sphinx_search/scripts/watch.stop.sh -u kaltura');
+				chdir(AppConfig::get(AppConfigAttribute::APP_DIR).'/plugins/sphinx_search/scripts/');
+				@exec('./watch.stop.sh -u kaltura');
 				logMessage(L_USER, "Stopping sphinx if running");
-				@exec(AppConfig::get(AppConfigAttribute::BASE_DIR).'/app/plugins/sphinx_search/scripts/searchd.sh stop 2>&1', $output, $return_var);
+				@exec('./searchd.sh stop 2>&1', $output, $return_var);
 				logMessage(L_USER, "Stopping the batch manager if running");
 				chdir(AppConfig::get(AppConfigAttribute::APP_DIR).'/scripts/');
-				@exec(AppConfig::get(AppConfigAttribute::BASE_DIR).'/app/scripts/serviceBatchMgr.sh stop 2>&1', $output, $return_var);
+				@exec('./serviceBatchMgr.sh stop 2>&1', $output, $return_var);
 				chdir($currentWorkingDir);
 				logMessage(L_USER, "Deleting ".AppConfig::get(AppConfigAttribute::BASE_DIR));
 				OsUtils::recursiveDelete(AppConfig::get(AppConfigAttribute::BASE_DIR));			
@@ -82,19 +81,12 @@ class Installer {
 	public function install($db_params) {
 		logMessage(L_USER, sprintf("Copying application files to %s", AppConfig::get(AppConfigAttribute::BASE_DIR)));
 		logMessage(L_USER, sprintf("current working dir is %s", getcwd()));
-		if (!OsUtils::rsync('package/app/', AppConfig::get(AppConfigAttribute::BASE_DIR))) {
+		if (!OsUtils::rsync('../package/', AppConfig::get(AppConfigAttribute::BASE_DIR))) {
 			return "Failed to copy application files to target directory";
 		}
 
-		$os_name = 	OsUtils::getOsName();
-		$architecture = OsUtils::getSystemArchitecture();	
-		logMessage(L_USER, "Copying binaries for $os_name $architecture");
-		if (!OsUtils::fullCopy("package/bin/$os_name/$architecture", AppConfig::get(AppConfigAttribute::BIN_DIR))) {
-			return "Failed to copy binaris for $os_name $architecture";
-		}
-		
 		logMessage(L_USER, "Creating the uninstaller");
-		if (!OsUtils::fullCopy('installer/uninstall.php', AppConfig::get(AppConfigAttribute::BASE_DIR)."/uninstaller/")) {
+		if (!mkdir(AppConfig::get(AppConfigAttribute::BASE_DIR)."/uninstaller/", 0750, true) || !OsUtils::fullCopy('installer/uninstall.php', AppConfig::get(AppConfigAttribute::BASE_DIR)."/uninstaller/")) {
 			return "Failed to create the uninstaller";
 		}
 		//create uninstaller.ini with minimal definitions
@@ -127,43 +119,12 @@ class Installer {
 			}
 		}		
 
-		$this->changeDirsAndFilesPermissions();
+		if(!$this->changeDirsAndFilesPermissions())
+			return "Failed to set files permissions";
+				
+		if(!$this->createDatabases())
+			return "Failed to create databases";
 		
-		if((!AppConfig::get(AppConfigAttribute::DB1_CREATE_NEW_DB)) && (DatabaseUtils::dbExists($db_params, AppConfig::get(AppConfigAttribute::DB1_NAME)) === true))
-		{		
-			logMessage(L_USER, sprintf("Skipping '%s' database creation", AppConfig::get(AppConfigAttribute::DB1_NAME)));
-		}
-		else 
-		{
-			$sql_files = parse_ini_file(AppConfig::get(AppConfigAttribute::BASE_DIR).APP_SQL_DIR.'create_kaltura_db.ini', true);
-			logMessage(L_USER, sprintf("Creating and initializing '%s' database", AppConfig::get(AppConfigAttribute::DB1_NAME)));
-			if (!DatabaseUtils::createDb($db_params, AppConfig::get(AppConfigAttribute::DB1_NAME))) {
-				return "Failed to create '".AppConfig::get(AppConfigAttribute::DB1_NAME)."' database";
-			}
-			foreach ($sql_files['kaltura']['sql'] as $sql) {
-				$sql_file = AppConfig::get(AppConfigAttribute::BASE_DIR).APP_SQL_DIR.$sql;
-				if (!DatabaseUtils::runScript($sql_file, $db_params, AppConfig::get(AppConfigAttribute::DB1_NAME))) {
-					return "Failed running database script $sql_file";
-				}
-			}
-		}
-		if((!AppConfig::get(AppConfigAttribute::DB1_CREATE_NEW_DB)) && (DatabaseUtils::dbExists($db_params, AppConfig::get(AppConfigAttribute::SPHINX_DB_NAME)) === true))
-		{		
-			logMessage(L_USER, sprintf("Skipping '%s' database creation", AppConfig::get(AppConfigAttribute::SPHINX_DB_NAME)));
-		}
-		else 
-		{		
-			logMessage(L_USER, sprintf("Creating and initializing '%s' database", AppConfig::get(AppConfigAttribute::SPHINX_DB_NAME)));
-			if (!DatabaseUtils::createDb($db_params, AppConfig::get(AppConfigAttribute::SPHINX_DB_NAME))) {
-				return "Failed to create '".AppConfig::get(AppConfigAttribute::SPHINX_DB_NAME)."' database";
-			}
-			foreach ($sql_files[AppConfig::get(AppConfigAttribute::SPHINX_DB_NAME)]['sql'] as $sql) {
-				$sql_file = AppConfig::get(AppConfigAttribute::BASE_DIR).APP_SQL_DIR.$sql;
-				if (!DatabaseUtils::runScript($sql_file, $db_params, AppConfig::get(AppConfigAttribute::SPHINX_DB_NAME))) {
-					return "Failed running database script $sql_file";
-				}
-			}
-		}
 		if((!AppConfig::get(AppConfigAttribute::DB1_CREATE_NEW_DB)) && (DatabaseUtils::dbExists($db_params, AppConfig::get(AppConfigAttribute::DWH_DATABASE_NAME)) === true))
 		{		
 			logMessage(L_USER, sprintf("Skipping '%s' database creation", AppConfig::get(AppConfigAttribute::DWH_DATABASE_NAME)));
@@ -221,16 +182,15 @@ class Installer {
 		} else {
 			return "Failed to populate sphinx log from categories";
 		}
-
-		$this->changeDirsAndFilesPermissions();
 		
 		logMessage(L_USER, "Creating system symbolic links");
 		foreach ($this->install_config['symlinks'] as $slink) {
-			$link_items = explode(SYMLINK_SEPARATOR, AppConfig::replaceTokensInString($slink));	
-			if (symlink($link_items[0], $link_items[1])) {
-				logMessage(L_INFO, "Created symbolic link $link_items[0] -> $link_items[1]");
+			list($target, $link) = explode(SYMLINK_SEPARATOR, AppConfig::replaceTokensInString($slink));
+			logMessage(L_USER, "Creating symbolic link [$link] for target [$target]");	
+			if (symlink($target, $link)) {
+				logMessage(L_INFO, "Created symbolic link [$link] for target [$target]");
 			} else {
-				return sprintf("Failed to create symblic link from %s to %s", $link_items[0], $link_items[1]);
+				return sprintf("Failed to create symblic link from %s to %s", $target, $link);
 			}
 		}
 		
@@ -274,9 +234,8 @@ class Installer {
 		print("Executing sphinx dameon \n");
 		OsUtils::executeInBackground('nohup '.AppConfig::get(AppConfigAttribute::APP_DIR).'/plugins/sphinx_search/scripts/watch.daemon.sh');
 		OsUtils::executeInBackground('chkconfig sphinx_watch.sh on');
-		$this->changeDirsAndFilesPermissions();
 		
-		OsUtils::execute('cp /package/version.ini ' . AppConfig::get(AppConfigAttribute::APP_DIR) . '/configurations/');
+		OsUtils::execute('cp ../package/version.ini ' . AppConfig::get(AppConfigAttribute::APP_DIR) . '/configurations/');
 		
 		return null;
 	}
@@ -305,14 +264,54 @@ class Installer {
 		return $verify;
 	}	
 	
-	private function changeDirsAndFilesPermissions(){
-	logMessage(L_USER, "Changing permissions of directories and files");
-		foreach ($this->install_config['chmod_items'] as $item) {
-			$chmod_item = AppConfig::replaceTokensInString($item);
-			if (!OsUtils::chmod($chmod_item)) {
-				return "Failed to change permissions for $chmod_item";
-			}
+	private function changeDirsAndFilesPermissions()
+	{
+		logMessage(L_USER, "Changing permissions of directories and files");
+		$baseDir = AppConfig::get(AppConfigAttribute::BASE_DIR);
+
+		$originalDir = getcwd();
+		chdir(__DIR__ . '/../directoryConstructor');
+		$command = "phing -verbose -DBASE_DIR=$baseDir Update-Permissions";
+		$returnedValue = null;
+		passthru($command, $returnedValue);			
+		chdir($originalDir);
+		
+		if($returnedValue != 0)
+			return false;
+			
+		return true;
+	}	
+	
+	private function createDatabases()
+	{
+		logMessage(L_USER, "Creating databases and database users");
+		$baseDir = AppConfig::get(AppConfigAttribute::BASE_DIR);
+
+		$originalDir = getcwd();
+		chdir(__DIR__ . '/../dbSchema');
+		
+		$attributes = array(
+			'-DBASE_DIR=' . $baseDir,
+			'-Duser.attributes.kaltura.password=' . AppConfig::get(AppConfigAttribute::DB1_PASS),
+			'-Duser.attributes.kaltura_sphinx.password=' . AppConfig::get(AppConfigAttribute::SPHINX_DB_PASS),
+			'-Duser.attributes.kaltura_etl.password=' . AppConfig::get(AppConfigAttribute::DWH_PASS),
+		);
+		$command = "phing -verbose " . implode(' ', $attributes);
+		$returnedValue = null;
+		passthru($command, $returnedValue);			
+		chdir($originalDir);
+	
+		if($returnedValue != 0)
+			return false;
+			
+		if (OsUtils::execute(sprintf("%s %s/deployment/base/scripts/insertDefaults.php %s/deployment/base/scripts/init_data", AppConfig::get(AppConfigAttribute::PHP_BIN), AppConfig::get(AppConfigAttribute::APP_DIR), AppConfig::get(AppConfigAttribute::APP_DIR)))) {
+			logMessage(L_INFO, "Default content inserted");
+		} else {
+			logMessage(L_ERROR, "Failed to insert default content");
+			return false;
 		}
+		
+		return true;
 	}	
 	
 	public function installRed5 ()
