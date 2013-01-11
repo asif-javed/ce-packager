@@ -124,6 +124,17 @@ branch you wish to use and update the submodules to use a similar branch.
 **During development, all commits to this repo _must_ be atomic so that
 they may be rebased onto SVN mirror branches.**
 
+## Commit Message Format Guidelines
+
+* `cof: #<number> <message>` - A commit adding a feature from the public GitHub tracker
+* `coi: #<number> <message>` - A commit fixing an issue from the public issue tracker
+* `fwr: <message>` - A new Feature Without a formal Request (this feature is not associated with any issue or feature tracker)
+* `ps: <message>` - A commit from the Kaltura Professional Services team
+* `req: <number> <message>` -  A new feature with it's associated internal feature tracker number
+* `qnd: <message>` - Quick and Dirty fix with low code impact, for example: style changes, syntax improvements
+* `def: <number <message>` - A defect and it's associated internal issue tracker identifier
+* `cnf: <message>` - A change in configuration files
+
 ## Commonly Used Server Administration Commands
 
 * Restart Sphinx: `sudo pkill searchd && sudo /opt/kaltura/bin/sphinx/searchd -c /opt/kaltura/app/configurations/sphinx/kaltura.conf`
