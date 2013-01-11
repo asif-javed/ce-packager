@@ -127,7 +127,7 @@ they may be rebased onto SVN mirror branches.**
 ## Commit Message Format Guidelines
 
 * `cof: #<number> <message>` - A commit adding a feature from the public GitHub tracker
-* `coi: #<number> <message>` - A commit fixing an issue from the public issue tracker
+* `coi: #<number> <message>` - A commit fixing an issue from the public GitHub tracker
 * `fwr: <message>` - A new Feature Without a formal Request (this feature is not associated with any issue or feature tracker)
 * `ps: <message>` - A commit from the Kaltura Professional Services team
 * `req: <number> <message>` -  A new feature with it's associated internal feature tracker number
