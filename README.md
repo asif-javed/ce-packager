@@ -155,6 +155,7 @@ they may be rebased onto SVN mirror branches.**
 
 ### Grepping and Tailing Errors
 
-`tail -f /opt/kaltura/log/*.log | grep "ERR:\|PHP\|Stack trace" --color`
+`grep "ERR:\|PHP\|trace\|CRIT" /opt/kaltura/log/*.log --color`
+`tail -f /opt/kaltura/log/*.log | grep "ERR:\|PHP\|trace\|CRIT" --color`
 
 To setup a development environment, consult [docs/development-environment.md](https://github.com/kaltura/ce-packager/blob/falcon/docs/development-environment.md)
