@@ -105,14 +105,24 @@ class AppConfig {
 		
 		
 		// site settings
+		if (strpos($this->app_config['KALTURA_FULL_VIRTUAL_HOST_NAME'], ":") !== false)
+		{
+			$this->app_config['KALTURA_VIRTUAL_HOST_PORT'] = parse_url($this->app_config['KALTURA_FULL_VIRTUAL_HOST_NAME'], PHP_URL_PORT);
+		}
+		else
+		{
+			$this->app_config['KALTURA_VIRTUAL_HOST_PORT'] = 80;
+		}
+		
 		$this->app_config['KALTURA_VIRTUAL_HOST_NAME'] = $this->removeHttp($this->app_config['KALTURA_FULL_VIRTUAL_HOST_NAME']);
 		$this->app_config['CORP_REDIRECT'] = '';	
 		$this->app_config['CDN_HOST'] = $this->app_config['KALTURA_VIRTUAL_HOST_NAME'];
 		$this->app_config['IIS_HOST'] = $this->app_config['KALTURA_VIRTUAL_HOST_NAME'];
-		$this->app_config['RTMP_URL'] = $this->app_config['KALTURA_VIRTUAL_HOST_NAME'];
-		$this->app_config['MEMCACHE_HOST'] = $this->app_config['KALTURA_VIRTUAL_HOST_NAME'];
+		$this->app_config['RTMP_URL'] = self::stripProtocol($this->app_config['KALTURA_VIRTUAL_HOST_NAME']);
+		$this->app_config['MEMCACHE_HOST'] = self::stripProtocol($this->app_config['KALTURA_VIRTUAL_HOST_NAME']);
 		$this->app_config['GLOBAL_MEMCACHE_HOST'] = $this->app_config['KALTURA_VIRTUAL_HOST_NAME'];
 		$this->app_config['WWW_HOST'] = $this->app_config['KALTURA_VIRTUAL_HOST_NAME'];
+		$this->app_config['WWW_HOST_NO_PORT'] = self::stripProtocol($this->app_config['KALTURA_VIRTUAL_HOST_NAME']);
 		$this->app_config['SERVICE_URL'] = 'http://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'];
 		$this->app_config['ENVIRONMENT_NAME'] = $this->app_config['KALTURA_VIRTUAL_HOST_NAME'];
 		
@@ -126,7 +136,6 @@ class AppConfig {
 		//sphinx
 		$this->app_config['SPHINX_SERVER'] = $this->app_config['DB1_HOST'];
 		$this->app_config['SPHINX_DB_NAME'] = 'kaltura_sphinx_log';
-		$this->app_config['SPHINX_DB_HOST'] = $this->app_config['KALTURA_VIRTUAL_HOST_NAME'];
 		$this->app_config['SPHINX_DB_PORT'] = $this->app_config['DB1_PORT'];
 	    $this->app_config['SPHINX_DB_USER'] = $this->app_config['DB1_USER'];
 		$this->app_config['SPHINX_DB_PASS'] = $this->app_config['DB1_PASS'];
@@ -209,6 +218,7 @@ class AppConfig {
 		$this->app_config['QUICK_START_GUIDE_URL'] = 'http://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'].'/content/docs/KMC_Quick_Start_Guide.pdf';
 		$this->app_config['UNSUBSCRIBE_EMAIL_URL'] = '"http://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'].'/index.php/extwidget/blockMail?e="';
 
+		//Set parameters default value if they are not included in a previous user_input.ini
 		if(!isset($this->app_config['DB1_CREATE_NEW_DB']))
 			$this->app_config['DB1_CREATE_NEW_DB'] = true;
 		else
@@ -387,4 +397,14 @@ class AppConfig {
 		for ($i=0; $i<$length; $i++) $key .= $charset[(mt_rand(0,(strlen($charset)-1)))];
 		return $key;
 	}	
+	
+	private static function stripProtocol($url)
+	{
+		if (strpos($url, ":"))
+		{
+			return parse_url($url, PHP_URL_HOST);
+		}
+		
+		return $url;
+	}
 }

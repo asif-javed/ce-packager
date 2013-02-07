@@ -82,15 +82,21 @@ class Installer {
 	public function install(AppConfig $app, $db_params) {
 		logMessage(L_USER, sprintf("Copying application files to %s", $app->get('BASE_DIR')));
 		logMessage(L_USER, sprintf("current working dir is %s", getcwd()));
-		if (!OsUtils::rsync('package/app/', $app->get('BASE_DIR'))) {
+		if (!OsUtils::rsync('package/app/', $app->get('BASE_DIR'), "--exclude web/content")) {
 			return "Failed to copy application files to target directory";
 		}
+		if ($app->get('DB1_CREATE_NEW_DB'))
+		{
+			if (!OsUtils::rsync("package/app/web/content", $app->get('WEB_DIR'))) {
+				return "Failed to copy default content into /opt/kaltura/web";
+			}
+		}		
 
 		$os_name = 	OsUtils::getOsName();
 		$architecture = OsUtils::getSystemArchitecture();	
 		logMessage(L_USER, "Copying binaries for $os_name $architecture");
 		if (!OsUtils::fullCopy("package/bin/$os_name/$architecture", $app->get('BIN_DIR'))) {
-			return "Failed to copy binaris for $os_name $architecture";
+			return "Failed to copy binaries for $os_name $architecture";
 		}
 		
 		logMessage(L_USER, "Creating the uninstaller");
@@ -217,12 +223,14 @@ class Installer {
 			return "Failed to populate sphinx log from tags";
 		}
 		if (OsUtils::execute(sprintf("%s %s/deployment/base/scripts/populateSphinxCategories.php", $app->get('PHP_BIN'), $app->get('APP_DIR')))) {
-			logMessage(L_INFO, "sphinx Categoriess log created");
+			logMessage(L_INFO, "sphinx Categories log created");
 		} else {
 			return "Failed to populate sphinx log from categories";
 		}
 
 		$this->changeDirsAndFilesPermissions($app);
+		
+		$this->changeDirsAndFilesOwnerships($app);
 		
 		logMessage(L_USER, "Creating system symbolic links");
 		foreach ($this->install_config['symlinks'] as $slink) {
@@ -230,7 +238,9 @@ class Installer {
 			if (symlink($link_items[0], $link_items[1])) {
 				logMessage(L_INFO, "Created symbolic link $link_items[0] -> $link_items[1]");
 			} else {
-				return sprintf("Failed to create symblic link from %s to %s", $link_items[0], $link_items[1]);
+				logMessage(L_INFO, "Failed to create symbolic link from ". $link_items[0]." to ".$link_items[1].", retyring..");
+				unlink($link_items[1]);
+				symlink($link_items[0], $link_items[1]);
 			}
 		}
 		
@@ -310,7 +320,7 @@ class Installer {
 	}	
 	
 	private function changeDirsAndFilesPermissions($app){
-	logMessage(L_USER, "Changing permissions of directories and files");
+		logMessage(L_USER, "Changing permissions of directories and files");
 		foreach ($this->install_config['chmod_items'] as $item) {
 			$chmod_item = $app->replaceTokensInString($item);
 			if (!OsUtils::chmod($chmod_item)) {
@@ -319,8 +329,53 @@ class Installer {
 		}
 	}	
 	
-	public function installRed5 ($app)
+	private function changeDirsAndFilesOwnerships ($app) {
+		logMessage(L_USER, "Changing ownerships of directories and files");
+		foreach ($this->install_config['chown_items'] as $item) {
+			$chmown_item = $app->replaceTokensInString($item);
+			if (!OsUtils::chown($chmown_item)) {
+				return "Failed to change ownership for $chmown_item";
+			}
+		}
+	}
+	
+	public function finalizeInstallation ($app)
 	{
+		$this->installRed5($app);
+		$this->configureSSL ($app);
+	}
+	
+	private function configureSSL ($app)
+	{
+		@exec($app->get('HTTPD_BIN') . ' -M 2>&1', $loadedModules, $exitCode);
+		if ($exitCode !== 0) {
+			logMessage(L_USER, "Unable to get list of loaded apache modules. Cannot enable SSL configuration for this installation. Please investigate the issue.");
+			return;
+		}
+		array_walk($loadedModules, create_function('&$str', '$str = trim($str);'));
+		
+		foreach ($loadedModules as $loadedModule)
+		{
+			if (strpos($loadedModule,'ssl_module') === 0) {
+				$found = true;
+				break;
+			}		
+		}
+		if (!$found)
+		{
+			logMessage(L_USER, "Required SSL module is missing. Cannot enable SSL configuration for this installation. Please investigate the issue.");
+			return;
+		}
+		
+		symlink($app->get('APP_DIR'). "/configurations/apache/my_kaltura.ssl.conf", "/etc/httpd/conf.d/my_kaltura.ssl.conf");
+		
+	}
+	
+	private function installRed5 ($app)
+	{
+		if (!$app->get('RED5_INSTALL'))
+			return;
+			
 		OsUtils::execute("dos2unix " . $app->get('BIN_DIR') ."/red5/red5");
 		OsUtils::execute("ln -s ". $app->get('BIN_DIR') ."/red5/red5 /etc/init.d/red5");
 		OsUtils::execute("/etc/init.d/red5 start");

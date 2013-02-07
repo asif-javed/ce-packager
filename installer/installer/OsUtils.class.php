@@ -168,8 +168,8 @@ class OsUtils {
 	}
 	
 	// full copy $source to $target and return true/false according to success
-	public static function rsync($source, $target) {
-		return self::execute("rsync -r $source $target");
+	public static function rsync($source, $target, $options = "") {
+		return self::execute("rsync -r $options $source $target");
 	}
 	
 	// recursive delete the $path and return true/false according to success
@@ -180,6 +180,10 @@ class OsUtils {
 	// execute chmod with the given $chmod command and return true/false according to success
 	public static function chmod($chmod) {
 		return self::execute("chmod $chmod");	
+	}
+	
+	public static function chown($chown) {
+		return self::execute("chown $chown");	
 	}
 	
 	/**

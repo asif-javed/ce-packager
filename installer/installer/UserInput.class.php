@@ -200,6 +200,12 @@ class UserInput
 						"Please input yes/no.", 
 						InputValidator::createYesNoValidator(), 
 						"no");
+		$this->getInput('SPHINX_DB_HOST', 
+						"Sphinx host (leave empty if Sphinx is running on this machine).", 
+						null, 
+						null, 
+						'127.0.0.1');
+						
 		$this->saveInput();	
 	}
 }
