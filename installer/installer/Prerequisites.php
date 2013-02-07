@@ -30,22 +30,6 @@ if (!checkVersion(phpversion(), $prerequisites_config["php_min_version"])) {
 	$prerequisites .= "PHP version should be >= " . $prerequisites_config["php_min_version"] . " (current version is ".phpversion().")".PHP_EOL;
 }
 
-// check php ini
-$request_order = ini_get("request_order");
-if (!empty($request_order)) {
-	if (preg_match($prerequisites_config["request_order_regex"], $request_order) === 0) {
-		$prerequisites .= "(PHP 5.3 and above) Please set 'request_order' ini value to include C,G and P (recommended: 'CGP') in php.ini ".PHP_EOL;
-	}
-} else {
-	if (checkVersion(phpversion(), "5.3")) {
-		$prerequisites .= "(PHP 5.3 and above) Please set 'request_order' ini value to include C,G and P (recommended: 'CGP') in php.ini ".PHP_EOL;
-	} else {
-		$variables_order = ini_get("variables_order");
-		if (preg_match($prerequisites_config["request_order_regex"], $variables_order) === 0) {
-			$prerequisites .= "Please set 'variables_order' ini value to include C,G and P in php.ini ".PHP_EOL;
-		}
-	}
-}
 
 // check php extensions
 foreach ($prerequisites_config["php_extensions"] as $ext) {
@@ -69,9 +53,9 @@ if (!extension_loaded('mysqli')) {
 	
 	$lower_case_table_names = getMysqlSetting($link, 'lower_case_table_names');
 	if (!isset($lower_case_table_names)) {
-		$prerequisites .= "Please set 'lower_case_table_names = ".$prerequisites_config["lower_case_table_names"]."' in my.cnf and restart MySQL".PHP_EOL;
+	    $prerequisites .= "Please set\n'lower_case_table_names = ".$prerequisites_config["lower_case_table_names"]."\n' in my.cnf and restart MySQL".PHP_EOL;
 	} else if (intval($lower_case_table_names) != intval($prerequisites_config["lower_case_table_names"])) {
-		$prerequisites .= "Please set 'lower_case_table_names = ".$prerequisites_config["lower_case_table_names"]."' in my.cnf and restart MySQL (current value is $lower_case_table_names)".PHP_EOL;
+	    $prerequisites .= "Please set\n'lower_case_table_names = ".$prerequisites_config["lower_case_table_names"]."\n' in my.cnf and restart MySQL (current value is $lower_case_table_names)".PHP_EOL;
 	}
 	
 	$thread_stack = getMysqlSetting($link, 'thread_stack');
@@ -84,21 +68,27 @@ if (!extension_loaded('mysqli')) {
 
 // check apache modules
 @exec("$httpd_bin -M 2>&1", $current_modules, $exit_code);
-if ($exit_code !== 0) {
+array_walk($current_modules, create_function('&$str', '$str = trim($str);'));
+if ($exit_code !== 0) 
+{
 	$prerequisites .= "Cannot check apache modules, please make sure that '$httpd_bin -t' command runs properly".PHP_EOL;
-} else {	
-	foreach ($prerequisites_config["apache_modules"] as $module) {
+} 
+else 
+{	
+	foreach ($prerequisites_config["apache_modules"] as $module) 
+	{
 		$found = false;
-		
-		for ($i=0; !$found && $i<count($current_modules); $i++) {
-			if (strpos($current_modules[$i],$module) !== false) {
+		foreach($current_modules as $current_module) 
+		{
+			if (strpos($current_module, $module) === 0)
+			{ 
 				$found = true;
-			}				
+				break;
+			}
 		}
 		
-		if (!$found) {
+		if (!$found) 
 			$prerequisites .= "Missing $module Apache module".PHP_EOL;
-		}
 	}
 }	
 
@@ -111,20 +101,13 @@ foreach ($prerequisites_config["binaries"] as $bin) {
 }
 
 // Check that SELinux is not enabled (enforcing)
-exec("getenforce", $statusresponse, $exit_code);
-if($exit_code != 127) // command not found - SELinux is not installed
-{
-	if ($exit_code !== 0) 
-	{
-		$prerequisites .= "Could not resolve SELinux status, run again.".PHP_EOL;
-	} 
-	elseif(!empty($statusresponse[0])) 
-	{
-		if(!strcmp($statusresponse[0],'Enforcing')) 
-		{
-			$prerequisites .= "SELinux is Enabled, please set to permissive.".PHP_EOL;
-		}
-	}
+exec("which getenforce 2>/dev/null",$out,$rc);
+if ($rc === 0){
+    echo "running getenforce\n";
+    exec("getenforce", $out, $rc);
+    if($out[1]==='Enforcing') {
+	$prerequisites .= "SELinux is Enabled, please disable.".PHP_EOL;
+    }
 }
 
 // check pentaho exists

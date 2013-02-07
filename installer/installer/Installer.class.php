@@ -55,16 +55,10 @@ class Installer {
 			if ($report_only) {
 				$leftovers .= "   Target directory ".AppConfig::get(AppConfigAttribute::BASE_DIR)." already exists".PHP_EOL;
 			} else {
-				logMessage(L_USER, "killing sphinx daemon if running");
-				$currentWorkingDir = getcwd();
-				chdir(AppConfig::get(AppConfigAttribute::APP_DIR).'/plugins/sphinx_search/scripts/');
-				@exec('./watch.stop.sh -u kaltura');
-				logMessage(L_USER, "Stopping sphinx if running");
-				@exec('./searchd.sh stop 2>&1', $output, $return_var);
-				logMessage(L_USER, "Stopping the batch manager if running");
-				chdir(AppConfig::get(AppConfigAttribute::APP_DIR).'/scripts/');
-				@exec('./serviceBatchMgr.sh stop 2>&1', $output, $return_var);
-				chdir($currentWorkingDir);
+				
+				foreach ($this->install_config['chkconfig'] as $service)
+					OsUtils::stopService($service);
+				
 				logMessage(L_USER, "Deleting ".AppConfig::get(AppConfigAttribute::BASE_DIR));
 				OsUtils::recursiveDelete(AppConfig::get(AppConfigAttribute::BASE_DIR));			
 			}
@@ -79,11 +73,17 @@ class Installer {
 	 * @return string|NULL null if the installation succeeded or an error text if it failed
 	 */
 	public function install($db_params) {
+		logMessage(L_USER, sprintf("Current working dir is %s", getcwd()));
 		logMessage(L_USER, sprintf("Copying application files to %s", AppConfig::get(AppConfigAttribute::BASE_DIR)));
-		logMessage(L_USER, sprintf("current working dir is %s", getcwd()));
-		if (!OsUtils::rsync('../package/', AppConfig::get(AppConfigAttribute::BASE_DIR))) {
+		if (!OsUtils::rsync('../package/', AppConfig::get(AppConfigAttribute::BASE_DIR), "--exclude web/content"))
 			return "Failed to copy application files to target directory";
-		}
+			
+		if (AppConfig::get(AppConfigAttribute::DB1_CREATE_NEW_DB))
+		{
+			logMessage(L_USER, sprintf("Copying web content files to %s", AppConfig::get(AppConfigAttribute::WEB_DIR)));
+			if (!OsUtils::rsync("../package/web/content", AppConfig::get(AppConfigAttribute::WEB_DIR)))
+				return "Failed to copy default content into ". AppConfig::get(AppConfigAttribute::WEB_DIR);
+		}		
 
 		logMessage(L_USER, "Creating the uninstaller");
 		if (!mkdir(AppConfig::get(AppConfigAttribute::BASE_DIR)."/uninstaller/", 0750, true) || !OsUtils::fullCopy('installer/uninstall.php', AppConfig::get(AppConfigAttribute::BASE_DIR)."/uninstaller/")) {
@@ -112,16 +112,16 @@ class Installer {
 		}
 		
 		logMessage(L_USER, "Replacing configuration tokens in files");
-		foreach ($this->install_config['token_files'] as $file) {
-			$replace_file = AppConfig::replaceTokensInString($file);
-			if (!AppConfig::replaceTokensInFile($replace_file)) {
-				return "Failed to replace tokens in $replace_file";
+		foreach ($this->install_config['token_files'] as $tokenFile) 
+		{
+			$files = glob(AppConfig::replaceTokensInString($tokenFile));
+			foreach($files as $file)
+			{
+				if (!AppConfig::replaceTokensInFile($file))
+					return "Failed to replace tokens in $file";
 			}
-		}		
-
-		if(!$this->changeDirsAndFilesPermissions())
-			return "Failed to set files permissions";
-				
+		}
+	
 		if(!$this->createDatabases())
 			return "Failed to create databases";
 		
@@ -132,7 +132,7 @@ class Installer {
 		else 
 		{
 			logMessage(L_USER, "Creating data warehouse");
-			if (!OsUtils::execute(sprintf("%s/setup/dwh_setup.sh -h %s -P %s -u %s -p %s -d %s ", AppConfig::get(AppConfigAttribute::DWH_DIR), AppConfig::get(AppConfigAttribute::DB1_HOST), AppConfig::get(AppConfigAttribute::DB1_PORT), AppConfig::get(AppConfigAttribute::DB1_USER), AppConfig::get(AppConfigAttribute::DB1_PASS), AppConfig::get(AppConfigAttribute::DWH_DIR)))) {		
+			if (!OsUtils::execute(sprintf("%s/setup/dwh_setup.sh -h %s -P %s -u %s -p %s -d %s ", AppConfig::get(AppConfigAttribute::DWH_DIR), AppConfig::get(AppConfigAttribute::DB1_HOST), AppConfig::get(AppConfigAttribute::DB1_PORT), AppConfig::get(AppConfigAttribute::DB_ROOT_USER), AppConfig::get(AppConfigAttribute::DB_ROOT_PASS), AppConfig::get(AppConfigAttribute::DWH_DIR)))) {		
 				return "Failed running data warehouse initialization script";
 			}
 		}
@@ -144,6 +144,9 @@ class Installer {
 			return "Failed to create dynamic enums";
 		}
 			
+		if(!$this->createInitialContent())
+			return "Failed to create initial content";
+		
 		logMessage(L_USER, "Create query cache triggers");
 		if (OsUtils::execute(sprintf("%s %s/deployment/base/scripts/createQueryCacheTriggers.php", AppConfig::get(AppConfigAttribute::PHP_BIN), AppConfig::get(AppConfigAttribute::APP_DIR)))) {
 			logMessage(L_INFO, "sphinx Query Cache Triggers created");
@@ -186,11 +189,19 @@ class Installer {
 		logMessage(L_USER, "Creating system symbolic links");
 		foreach ($this->install_config['symlinks'] as $slink) {
 			list($target, $link) = explode(SYMLINK_SEPARATOR, AppConfig::replaceTokensInString($slink));
-			logMessage(L_USER, "Creating symbolic link [$link] for target [$target]");	
+			
+			if(!file_exists(dirname($link)))
+				mkdir(dirname($link), 0755, true);
+				
+			if(file_exists($link))
+				unlink($link);
+					
 			if (symlink($target, $link)) {
-				logMessage(L_INFO, "Created symbolic link [$link] for target [$target]");
+				logMessage(L_INFO, "Created symbolic link $link -> $target");
 			} else {
-				return sprintf("Failed to create symblic link from %s to %s", $target, $link);
+				logMessage(L_INFO, "Failed to create symbolic link from $link to $target, retyring..");
+				unlink($link);
+				symlink($target, $link);
 			}
 		}
 		
@@ -211,29 +222,31 @@ class Installer {
 			}
 		}
 				
-		logMessage(L_USER, "clear cache");
-		if (!OsUtils::execute(sprintf("%s %s/scripts/clear_cache.php -y", AppConfig::get(AppConfigAttribute::PHP_BIN), AppConfig::get(AppConfigAttribute::APP_DIR)))) {
-			return "Failed clear cache";
-		}
-		
 		logMessage(L_USER, "Running the generate script");
-		$currentWorkingDir = getcwd();
-		chdir(AppConfig::get(AppConfigAttribute::APP_DIR).'/generator');
-		if (!OsUtils::execute(AppConfig::get(AppConfigAttribute::APP_DIR).'/generator/generate.sh')) {
+		if (!OsUtils::execute(sprintf("%s/generator/generate.sh", AppConfig::get(AppConfigAttribute::APP_DIR)))) {
 			return "Failed running the generate script";
 		}
 		
-		logMessage(L_USER, "Running the batch manager");
-		chdir(AppConfig::get(AppConfigAttribute::APP_DIR).'/scripts/');
-		if (!OsUtils::execute(AppConfig::get(AppConfigAttribute::APP_DIR).'/scripts/serviceBatchMgr.sh start')) {
-			return "Failed running the batch manager";
+		if(!$this->changeDirsAndFilesPermissions())
+			return "Failed to set files permissions";
+			
+		logMessage(L_USER, "Restarting apache http server");
+		if (!OsUtils::execute(AppConfig::get(AppConfigAttribute::APACHE_RESTART_COMMAND))) {
+			return "Failed restarting apache http server";
 		}
-		chdir($currentWorkingDir);
 		
-		logMessage(L_USER, "Running the sphinx search deamon");
-		print("Executing sphinx dameon \n");
-		OsUtils::executeInBackground('nohup '.AppConfig::get(AppConfigAttribute::APP_DIR).'/plugins/sphinx_search/scripts/watch.daemon.sh');
-		OsUtils::executeInBackground('chkconfig sphinx_watch.sh on');
+		logMessage(L_USER, "Running kaltura services");
+		foreach ($this->install_config['chkconfig'] as $service)
+		{
+			if (!OsUtils::startService($service))
+				return "Failed starting service [$service]";
+		}
+		
+		//update uninstaller config
+		AppConfig::updateUninstallerServices($this->install_config['chkconfig']);
+		
+		if(!$this->createTemplateContent())
+			return "Failed to create template content";
 		
 		OsUtils::execute('cp ../package/version.ini ' . AppConfig::get(AppConfigAttribute::APP_DIR) . '/configurations/');
 		
@@ -267,47 +280,51 @@ class Installer {
 	private function changeDirsAndFilesPermissions()
 	{
 		logMessage(L_USER, "Changing permissions of directories and files");
-		$baseDir = AppConfig::get(AppConfigAttribute::BASE_DIR);
-
-		$originalDir = getcwd();
-		chdir(__DIR__ . '/../directoryConstructor');
-		$command = "phing -verbose -DBASE_DIR=$baseDir Update-Permissions";
-		$returnedValue = null;
-		passthru($command, $returnedValue);			
-		chdir($originalDir);
+		$dir = __DIR__ . '/../directoryConstructor';
+		return OsUtils::phing($dir, 'Update-Permissions');
+	}	
+	
+	private function createDatabases()
+	{
+		global $logFile;
 		
-		if($returnedValue != 0)
+		logMessage(L_USER, "Creating databases and database users");
+
+		$dir = __DIR__ . '/../dbSchema';
+		if(!OsUtils::phing($dir))
 			return false;
 			
 		return true;
 	}	
 	
-	private function createDatabases()
+	private function createInitialContent ()
 	{
-		logMessage(L_USER, "Creating databases and database users");
-		$baseDir = AppConfig::get(AppConfigAttribute::BASE_DIR);
-
-		$originalDir = getcwd();
-		chdir(__DIR__ . '/../dbSchema');
-		
-		$attributes = array(
-			'-DBASE_DIR=' . $baseDir,
-			'-Duser.attributes.kaltura.password=' . AppConfig::get(AppConfigAttribute::DB1_PASS),
-			'-Duser.attributes.kaltura_sphinx.password=' . AppConfig::get(AppConfigAttribute::SPHINX_DB_PASS),
-			'-Duser.attributes.kaltura_etl.password=' . AppConfig::get(AppConfigAttribute::DWH_PASS),
-		);
-		$command = "phing -verbose " . implode(' ', $attributes);
-		$returnedValue = null;
-		passthru($command, $returnedValue);			
-		chdir($originalDir);
-	
-		if($returnedValue != 0)
-			return false;
-			
+		logMessage(L_USER, "Creating databases initial content");
 		if (OsUtils::execute(sprintf("%s %s/deployment/base/scripts/insertDefaults.php %s/deployment/base/scripts/init_data", AppConfig::get(AppConfigAttribute::PHP_BIN), AppConfig::get(AppConfigAttribute::APP_DIR), AppConfig::get(AppConfigAttribute::APP_DIR)))) {
 			logMessage(L_INFO, "Default content inserted");
 		} else {
 			logMessage(L_ERROR, "Failed to insert default content");
+			return false;
+		}
+			
+		logMessage(L_USER, "Creating databases initial permissions");
+		if (OsUtils::execute(sprintf("%s %s/deployment/base/scripts/insertPermissions.php", AppConfig::get(AppConfigAttribute::PHP_BIN), AppConfig::get(AppConfigAttribute::APP_DIR)))) {
+			logMessage(L_INFO, "Default permissions inserted");
+		} else {
+			logMessage(L_ERROR, "Failed to insert permissions");
+			return false;
+		}
+		
+		return true;
+	}	
+	
+	private function createTemplateContent ()
+	{
+		logMessage(L_USER, "Creating partner template content");
+		if (OsUtils::execute(sprintf("%s %s/deployment/base/scripts/insertContent.php", AppConfig::get(AppConfigAttribute::PHP_BIN), AppConfig::get(AppConfigAttribute::APP_DIR)))) {
+			logMessage(L_INFO, "Default content inserted");
+		} else {
+			logMessage(L_ERROR, "Failed to insert content");
 			return false;
 		}
 		

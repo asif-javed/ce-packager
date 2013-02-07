@@ -37,41 +37,37 @@ if (preg_match('/^v[0-9]+\.[0-9]+\.[0-9]+/', $version_ini['number']) != 1) {
 
 // set php_ini settings
 error_reporting(E_ALL);
-
 ini_set('max_execution_time', 0);
 ini_set('memory_limit', -1);
 ini_set('max_input_time ', 0);
 
-echo PHP_EOL.PHP_EOL;
-
 // start packaging
 echo "Started packaging\n";
 
-$base_dir = $version_ini['outputdir'];
+$baseDir = $version_ini['outputdir'];
+$xmlUri = __DIR__ . '/directories.' . $version_ini['type'] . '.xml';
+
+$attributes = array(
+	'package.dir' => getcwd(),
+	'package.type' => $version_ini['type'],
+	'package.version' => $version_ini['number'],
+	'package.beta' => $version_ini['beta'],
+	'package.preinstalled' => $version_ini['preinstalled'],
+	'BASE_DIR' => $baseDir,
+	'xml.uri' => $xmlUri,
+);
+$options = array();
+foreach($attributes as $attribute => $value)
+	$options[] = "-D{$attribute}={$value}";
+$options = implode(' ', $options);
 
 chdir(__DIR__ . '/../installer/directoryConstructor');
-$command = "phing -verbose -DBASE_DIR=$base_dir/package";
+$command = "phing -verbose -logger phing.listener.AnsiColorLogger $options Pack";
+echo "Executing: $command\n";
 $returnedValue = null;
 passthru($command, $returnedValue);
 if($returnedValue != 0)
 	exit($returnedValue);
-echo "Created package skeleton\n";
 
-// save version.ini (later used by the installer)
-$version_ini_str = 'type = '.$version_ini['type'].PHP_EOL;
-$version_ini_str .= 'number = '.$version_ini['number'].' '.$version_ini['beta'].PHP_EOL;
-$version_ini_str .= 'preinstalled = '.$version_ini['preinstalled'].PHP_EOL;
-file_put_contents($base_dir . '/package/version.ini', $version_ini_str);
-echo "Created version.ini\n";
-
-// copy package root
-recurse_copy(__DIR__ . '/../installer', "$base_dir/installer");
-recurse_copy(__DIR__ . '/package_root/' . $version_ini['type'], "$base_dir/package");
-echo "Copied package root\n";
 echo "Finished successfully\n";
 exit(0);
-
-
-
-
-

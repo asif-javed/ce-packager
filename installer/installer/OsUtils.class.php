@@ -99,10 +99,50 @@ class OsUtils {
 		return OsUtils::writeFile($filename, $data);
 	}
 
+	// executes the phing and returns true/false according to the execution return value
+	public static function phing($dir, $target = '', array $attributes = array()) 
+	{
+		$propertyFile = AppConfig::getFilePath();
+		$options = array();
+		foreach($attributes as $attribute => $value)
+			$options[] = "-D{$attribute}={$value}";
+		$options = implode(' ', $options);
+				
+		 
+		$originalDir = getcwd();
+		chdir($dir);
+		$command = "phing -verbose -logger phing.listener.AnsiColorLogger -propertyfile $propertyFile $options $target >> " . self::$logDir . "/kaltura_deploy.log 2>&1";
+		logMessage(L_INFO, "Executing $command");
+		$returnedValue = null;
+		passthru($command, $returnedValue);			
+		chdir($originalDir);
+		
+		if($returnedValue != 0)
+			return false;
+			
+		return true;
+	}
+
+	public static function startService($service, $alwaysStartAutomtically = true) 
+	{
+		if($alwaysStartAutomtically)
+			OsUtils::executeInBackground("chkconfig $service on");
+			
+		return self::execute("/etc/init.d/$service start");
+	}
+
+	public static function stopService($service, $neverStartAutomtically = true) 
+	{
+		if($neverStartAutomtically)
+			OsUtils::executeInBackground("chkconfig $service off");
+			
+		return self::execute("/etc/init.d/$service stop");
+	}
+
 	// executes the shell $commands and returns true/false according to the execution return value
 	public static function execute($command) {
 		logMessage(L_INFO, "Executing $command");
-		@exec($command . ' >> ' . self::$logDir .'/instlBkgrndRun.log 2>&1 ', $output, $return_var);
+		@exec($command . ' >> ' . self::$logDir .'/kaltura_deploy.log 2>&1 ', $output, $return_var);
 		if ($return_var === 0) {
 			return true;
 		} else {
@@ -136,7 +176,7 @@ class OsUtils {
 	public static function executeInBackground($command) {
 		logMessage(L_INFO, "Executing in background $command");
 		print("Executing in background $command \n");
-		@exec($command. ' >> ' . self::$logDir .'/instlBkgrndRun.log 2>&1 &', $output, $return_var);
+		@exec($command. ' >> ' . self::$logDir .'/kaltura_deploy.log 2>&1 &', $output, $return_var);
 	}
 
 	// Execute 'which' on each of the given $file_name (array or string) and returns the first one found (null if not found)
@@ -168,8 +208,8 @@ class OsUtils {
 	}
 	
 	// full copy $source to $target and return true/false according to success
-	public static function rsync($source, $target) {
-		return self::execute("rsync -r $source $target");
+	public static function rsync($source, $target, $options = "") {
+		return self::execute("rsync -r $options $source $target");
 	}
 	
 	// recursive delete the $path and return true/false according to success
