@@ -203,8 +203,14 @@ class UserInput
 		$this->getInput('SPHINX_DB_HOST', 
 						"Sphinx host (leave empty if Sphinx is running on this machine).", 
 						null, 
-						null, 
+						InputValidator::createHostValidator(), 
 						'127.0.0.1');
+						
+		$this->getInput('WORK_MODE', 
+						"Work mode - enter http/https", 
+						null, 
+						null, 
+						'http');
 						
 		$this->saveInput();	
 	}

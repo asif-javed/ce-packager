@@ -384,14 +384,14 @@ class Installer {
 		//Replace rtmp_url parameter in the local.ini configuration file
 		$location = $app->get('APP_DIR')."/configurations/local.ini";
 		$localValues = parse_ini_file($location, true);
-		$localValues['rtmp_url'] = 'rtmp://' . $app->get('KALTURA_VIRTUAL_HOST_NAME') . '/oflaDemo'; 
+		$localValues['rtmp_url'] = 'rtmp://' . $app->get('WWW_HOST_NO_PORT') . '/oflaDemo'; 
 		OsUtils::writeToIniFile($location, $localValues);
 		
 		//url-managers.ini change
 		$location  = $app->get('APP_DIR')."/configurations/url_managers.ini";
 		$urlManagersValues = parse_ini_file($location);
 		$red5Addition = array ('class' => 'kLocalPathUrlManager');
-		$urlManagersValues[$app->get('ENVIRONMENT_NAME')] = $red5Addition;
+		$urlManagersValues[$app->get('BASE_HOST_NO_PORT')] = $red5Addition;
 		OsUtils::writeToIniFile($location, $urlManagersValues);
 		
 		//Retrieve KCW uiconf ids

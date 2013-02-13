@@ -120,10 +120,10 @@ class AppConfig {
 		$this->app_config['IIS_HOST'] = $this->app_config['KALTURA_VIRTUAL_HOST_NAME'];
 		$this->app_config['RTMP_URL'] = self::stripProtocol($this->app_config['KALTURA_VIRTUAL_HOST_NAME']);
 		$this->app_config['MEMCACHE_HOST'] = self::stripProtocol($this->app_config['KALTURA_VIRTUAL_HOST_NAME']);
-		$this->app_config['GLOBAL_MEMCACHE_HOST'] = $this->app_config['KALTURA_VIRTUAL_HOST_NAME'];
+		$this->app_config['GLOBAL_MEMCACHE_HOST'] = self::stripProtocol($this->app_config['KALTURA_VIRTUAL_HOST_NAME']);
 		$this->app_config['WWW_HOST'] = $this->app_config['KALTURA_VIRTUAL_HOST_NAME'];
-		$this->app_config['WWW_HOST_NO_PORT'] = self::stripProtocol($this->app_config['KALTURA_VIRTUAL_HOST_NAME']);
-		$this->app_config['SERVICE_URL'] = 'http://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'];
+		$this->app_config['BASE_HOST_NO_PORT'] = self::stripProtocol($this->app_config['KALTURA_VIRTUAL_HOST_NAME']);
+		$this->app_config['SERVICE_URL'] = $this->app_config['WORK_MODE'].'://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'];
 		$this->app_config['ENVIRONMENT_NAME'] = $this->app_config['KALTURA_VIRTUAL_HOST_NAME'];
 		
 		// databases (copy information collected during prerequisites
@@ -164,7 +164,7 @@ class AppConfig {
 		$this->app_config['DWH_PASS'] = 'etl';
 		$this->app_config['DWH_SEND_REPORT_MAIL'] = $this->app_config['ADMIN_CONSOLE_ADMIN_MAIL'];
 		$this->app_config['EVENTS_LOGS_DIR'] = $this->app_config['LOG_DIR'];
-		$this->app_config['EVENTS_WILDCARD'] = '*kaltura.*_apache_access.log-.*';
+		$this->app_config['EVENTS_WILDCARD'] = '.*kaltura.*_apache_access.log-.*';
 		$this->app_config['EVENTS_FETCH_METHOD'] = 'local';
 		
 				
@@ -215,8 +215,8 @@ class AppConfig {
 		$this->app_config['CONTACT_URL'] = 'http://corp.kaltura.com/contact';
 		$this->app_config['CONTACT_PHONE_NUMBER'] = '+1 800 871-5224';
 		$this->app_config['BEGINNERS_TUTORIAL_URL'] = 'http://corp.kaltura.com/about/dosignup';
-		$this->app_config['QUICK_START_GUIDE_URL'] = 'http://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'].'/content/docs/KMC_Quick_Start_Guide.pdf';
-		$this->app_config['UNSUBSCRIBE_EMAIL_URL'] = '"http://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'].'/index.php/extwidget/blockMail?e="';
+		$this->app_config['QUICK_START_GUIDE_URL'] = $this->app_config['WORK_MODE'].'://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'].'/content/docs/KMC_Quick_Start_Guide.pdf';
+		$this->app_config['UNSUBSCRIBE_EMAIL_URL'] = '"'.$this->app_config['WORK_MODE'].'://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'].'/index.php/extwidget/blockMail?e="';
 
 		//Set parameters default value if they are not included in a previous user_input.ini
 		if(!isset($this->app_config['DB1_CREATE_NEW_DB']))
@@ -266,7 +266,7 @@ class AppConfig {
 		$this->app_config['MEMCACHE_HOST'] = $this->app_config['KALTURA_VIRTUAL_HOST_NAME'];
 		$this->app_config['GLOBAL_MEMCACHE_HOST'] = $this->app_config['KALTURA_VIRTUAL_HOST_NAME'];
 		$this->app_config['WWW_HOST'] = $this->app_config['KALTURA_VIRTUAL_HOST_NAME'];
-		$this->app_config['SERVICE_URL'] = 'http://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'];
+		$this->app_config['SERVICE_URL'] = $this->app_config['WORK_MODE'].'://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'];
 		$this->app_config['ENVIRONMENT_NAME'] = $this->app_config['KALTURA_VIRTUAL_HOST_NAME'];		
 		$this->app_config['BATCH_KUSER_MAIL'] = 'batch@'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'];
 		$this->app_config['TEMPLATE_PARTNER_MAIL'] = 'template@'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'];
@@ -288,17 +288,17 @@ class AppConfig {
 		$this->app_config['TEMPLATE_ADMIN_KUSER_SALT'] = $this->app_config['SYSTEM_USER_ADMIN_SALT'];
 		$this->app_config['TEMPLATE_ADMIN_KUSER_SHA1'] = $this->app_config['SYSTEM_USER_ADMIN_SHA1'];
 		
-		$this->app_config['XYMON_URL'] = 'http://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'].'/xymon/';
-		$this->app_config['QUICK_START_GUIDE_URL'] = 'http://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'].'/content/docs/KMC_Quick_Start_Guide.pdf';
-		$this->app_config['UNSUBSCRIBE_EMAIL_URL'] = '"http://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'].'/index.php/extwidget/blockMail?e="';
+		$this->app_config['XYMON_URL'] = $this->app_config['WORK_MODE'].'://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'].'/xymon/';
+		$this->app_config['QUICK_START_GUIDE_URL'] = $this->app_config['WORK_MODE'].'://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'].'/content/docs/KMC_Quick_Start_Guide.pdf';
+		$this->app_config['UNSUBSCRIBE_EMAIL_URL'] = '"'.$this->app_config['WORK_MODE'].'://'.$this->app_config['KALTURA_VIRTUAL_HOST_NAME'].'/index.php/extwidget/blockMail?e="';
 	}
 	
 	public function definePostInstallationConfigurationTokens()
 	{
 		$this->app_config['POST_INST_VIRTUAL_HOST_NAME'] = $this->removeHttp($this->app_config['KALTURA_FULL_VIRTUAL_HOST_NAME']);
 		$this->app_config['KALTURA_VIRTUAL_HOST_NAME'] = $this->app_config['POST_INST_VIRTUAL_HOST_NAME'];
-		$this->app_config['DELIVERY_HTTP_BASE_URL'] = 'http://'.$this->app_config['POST_INST_VIRTUAL_HOST_NAME'];
-		$this->app_config['DELIVERY_ISS_BASE_URL'] = 'http://'.$this->app_config['POST_INST_VIRTUAL_HOST_NAME'];
+		$this->app_config['DELIVERY_HTTP_BASE_URL'] = $this->app_config['WORK_MODE'].'://'.$this->app_config['POST_INST_VIRTUAL_HOST_NAME'];
+		$this->app_config['DELIVERY_ISS_BASE_URL'] = $this->app_config['WORK_MODE'].'://'.$this->app_config['POST_INST_VIRTUAL_HOST_NAME'];
 		$this->app_config['DELIVERY_RTMP_BASE_URL'] = $this->app_config['POST_INST_VIRTUAL_HOST_NAME'];
 		
 		$this->app_config['POST_INST_ADMIN_CONSOLE_ADMIN_MAIL'] = $this->app_config['ADMIN_CONSOLE_ADMIN_MAIL'];		
