@@ -3,7 +3,7 @@
 	url = https://github.com/kaltura/ce-docs.git
 [submodule "git-repositories/KalturaServer"]
 	path = git-repositories/KalturaServer
-	url = https://github.com/kaltura/KalturaServer.git
+	url = https://github.com/kaltura/KalturaServerCore.git
 [submodule "git-repositories/ce-binaries"]
 	path = git-repositories/ce-binaries
 	url = https://github.com/kaltura/ce-binaries.git
